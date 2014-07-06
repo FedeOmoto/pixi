@@ -1,0 +1,5 @@
+name: pixi
+description: A pub package
+dependencies:
+  browser: any
+  csslib: any
