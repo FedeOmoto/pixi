@@ -53,6 +53,8 @@ class Sprite extends DisplayObjectContainer {
 
   CanvasElement _tintedTexture;
 
+  CanvasBuffer buffer;
+
   /**
    * A sprite can be created directly from an image like this: 
    * 

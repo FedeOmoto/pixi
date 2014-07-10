@@ -1,5 +1,10 @@
-name: pixi
-description: A pub package
+name: pixi_dart
+version: 0.1.6
+author: Federico Omoto <federico.omoto@gmail.com>
+description: A port of the pixi.js rendering engine to Dart.
+homepage: https://github.com/FedeOmoto/pixi
+environment:
+  sdk: 1.5.3
 dependencies:
-  browser: any
-  csslib: any
+  browser: '>=0.10.0 <0.11.0'
+  csslib: '>=0.10.0 <0.11.0'

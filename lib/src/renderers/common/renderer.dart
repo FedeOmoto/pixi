@@ -40,14 +40,17 @@ abstract class Renderer {
   /// Handles masking.
   MaskManager maskManager;
 
+  /// The render session is just a bunch of parameters used for rendering.
   RenderSession renderSession;
 
-  Renderer({int width, int height, CanvasElement view, bool transparent}) {
+  Renderer({this.width, this.height, CanvasElement view, this.transparent}) {
     if (view == null) this.view = new CanvasElement();
 
     this.view.width = width;
     this.view.height = height;
   }
+
+  int get type;
 
   /// Renders the stage to its view.
   void render(Stage stage);

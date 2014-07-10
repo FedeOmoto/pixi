@@ -15,10 +15,17 @@
 part of pixi;
 
 // TODO: document.
-abstract class RenderSession {
-  CanvasRenderingContext context;
-  final MaskManager maskManager;
-  BlendModes<int> currentBlendMode;
+class Uniform4i extends Uniform {
+  int x;
+  int y;
+  int z;
+  int w;
 
-  RenderSession(this.context, this.maskManager);
+  Uniform4i(String name, this.x, this.y, this.z, this.w) : super(gl.INT_VEC4,
+      name);
+
+  @override
+  void sync(gl.RenderingContext context) {
+    context.uniform4i(location, x, y, z, w);
+  }
 }

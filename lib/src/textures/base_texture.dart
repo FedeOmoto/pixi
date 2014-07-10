@@ -19,7 +19,7 @@ part of pixi;
  * a base texture.
  */
 class BaseTexture extends EventTarget {
-  static Map<String, BaseTexture> _cache;
+  static Map<String, BaseTexture> _cache = new Map<String, BaseTexture>();
   static List<BaseTexture> _texturesToUpdate = new List<BaseTexture>();
   static List<BaseTexture> _texturesToDestroy = new List<BaseTexture>();
   static int _cacheIdGenerator = 0;

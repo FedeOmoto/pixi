@@ -16,5 +16,84 @@ part of pixi;
 
 // TODO: document.
 class WebGLShaderManager {
-  // TODO
+  gl.RenderingContext context;
+
+  List<bool> attribState = new List.filled(10, false);
+  List<bool> tempAttribState;
+
+  PrimitiveShader primitiveShader;
+  PixiShader defaultShader;
+  PixiFastShader fastShader;
+
+  Shader currentShader;
+
+  WebGLShaderManager(this.context) {
+    setContext(context);
+  }
+
+  /// Initialises the context and the properties.
+  void setContext(gl.RenderingContext context) {
+    this.context = context;
+
+    // The next one is used for rendering primitives.
+    primitiveShader = new PrimitiveShader(context);
+
+    // This shader is used for the default sprite rendering.
+    defaultShader = new PixiShader(context);
+
+    // This shader is used for the fast sprite rendering.
+    fastShader = new PixiFastShader(context);
+
+    activateShader(defaultShader);
+  }
+
+  /// Takes the attributes given in parameters.
+  void setAttribs(List<int> attribs) {
+    // Reset temp state.
+    tempAttribState = new List.filled(10, false);
+
+    // Set the new attribs.
+    attribs.forEach((attribId) => tempAttribState[attribId] = true);
+
+    for (int i = 0; i < attribState.length; i++) {
+      if (attribState[i] != tempAttribState[i]) {
+        attribState[i] = tempAttribState[i];
+
+        if (tempAttribState[i]) {
+          context.enableVertexAttribArray(i);
+        } else {
+          context.disableVertexAttribArray(i);
+        }
+      }
+    }
+  }
+
+  /// Sets-up the given shader.
+  void activateShader(Shader shader) {
+    currentShader = shader;
+
+    context.useProgram(shader.program);
+    setAttribs(shader.attributes);
+  }
+
+  /// Triggers the primitive shader.
+  void activatePrimitiveShader() {
+    context.useProgram(primitiveShader.program);
+    setAttribs(primitiveShader.attributes);
+  }
+
+  /// Disable the primitive shader.
+  void deactivatePrimitiveShader() {
+    context.useProgram(defaultShader.program);
+    setAttribs(defaultShader.attributes);
+  }
+
+  void destroy() {
+    attribState = null;
+    tempAttribState = null;
+    primitiveShader.destroy();
+    defaultShader.destroy();
+    fastShader.destroy();
+    context = null;
+  }
 }

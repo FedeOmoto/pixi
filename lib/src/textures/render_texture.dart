@@ -137,9 +137,9 @@ class RenderTexture extends Texture {
     displayObject._children.forEach((child) => child._updateTransform());
 
     // Update the textures!
-    WebGLRenderer.updateTextures();
+    WebGLRenderer._updateTextures();
 
-    (renderer as WebGLRenderer).renderDisplayObject(displayObject, projection,
+    (renderer as WebGLRenderer)._renderDisplayObject(displayObject, projection,
         textureBuffer.frameBuffer);
 
     displayObject._worldTransform = originalWorldTransform;
@@ -163,7 +163,7 @@ class RenderTexture extends Texture {
 
     var context = textureBuffer.context as CanvasRenderingContext2D;
 
-    (renderer as CanvasRenderer).renderDisplayObject(displayObject, context);
+    (renderer as CanvasRenderer)._renderDisplayObject(displayObject, context);
 
     context.setTransform(1, 0, 0, 1, 0, 0);
 

@@ -15,45 +15,53 @@
 part of pixi;
 
 // TODO: document.
-class PixiShader extends Shader {
-  gl.UniformLocation uSampler, dimensions;
+class PixiFastShader extends Shader {
+  gl.UniformLocation uSampler, dimensions, uMatrix;
 
-  int aTextureCoord;
+  int aPositionCoord, aScale, aRotation, aTextureCoord;
 
-  PixiShader(gl.RenderingContext context) : super(context);
+  PixiFastShader(gl.RenderingContext context) : super(context);
 
   @override
   void setProgramSource() {
     fragmentSrc =
         '''
-        precision lowp float;
-        varying vec2 vTextureCoord;
-        varying vec4 vColor;
-        uniform sampler2D uSampler;
+            precision lowp float;
+            varying vec2 vTextureCoord;
+            varying float vColor;
+            uniform sampler2D uSampler;
 
-        void main(void) {
-          gl_FragColor = texture2D(uSampler, vTextureCoord) * vColor;
-        }''';
+            void main(void) {
+              gl_FragColor = texture2D(uSampler, vTextureCoord) * vColor;
+            }''';
 
     vertexSrc =
         '''
         attribute vec2 aVertexPosition;
+        attribute vec2 aPositionCoord;
+        attribute vec2 aScale;
+        attribute float aRotation;
         attribute vec2 aTextureCoord;
-        attribute vec2 aColor;
+        attribute float aColor;
 
         uniform vec2 projectionVector;
         uniform vec2 offsetVector;
+        uniform mat3 uMatrix;
 
         varying vec2 vTextureCoord;
-        varying vec4 vColor;
+        varying float vColor;
 
         const vec2 center = vec2(-1.0, 1.0);
 
         void main(void) {
-          gl_Position = vec4(((aVertexPosition + offsetVector) / projectionVector) + center, 0.0, 1.0);
+          vec2 v;
+          vec2 sv = aVertexPosition * aScale;
+          v.x = (sv.x) * cos(aRotation) - (sv.y) * sin(aRotation);
+          v.y = (sv.x) * sin(aRotation) + (sv.y) * cos(aRotation);
+          v = (uMatrix * vec3(v + aPositionCoord , 1.0)).xy;
+          gl_Position = vec4((v / projectionVector) + center, 0.0, 1.0);
           vTextureCoord = aTextureCoord;
-          vec3 color = mod(vec3(aColor.y / 65536.0, aColor.y / 256.0, aColor.y), 256.0) / 256.0;
-          vColor = vec4(color * aColor.x, aColor.x);
+          vColor = aColor;
         }''';
   }
 
@@ -65,37 +73,28 @@ class PixiShader extends Shader {
 
     // Get and store the uniforms for the shader.
     uSampler = context.getUniformLocation(program, 'uSampler');
+
     projectionVector = context.getUniformLocation(program, 'projectionVector');
     offsetVector = context.getUniformLocation(program, 'offsetVector');
     dimensions = context.getUniformLocation(program, 'dimensions');
+    uMatrix = context.getUniformLocation(program, 'uMatrix');
 
     // Get and store the attributes.
     aVertexPosition = context.getAttribLocation(program, 'aVertexPosition');
+    aPositionCoord = context.getAttribLocation(program, 'aPositionCoord');
+
+    aScale = context.getAttribLocation(program, 'aScale');
+    aRotation = context.getAttribLocation(program, 'aRotation');
+
     aTextureCoord = context.getAttribLocation(program, 'aTextureCoord');
     colorAttribute = context.getAttribLocation(program, 'aColor');
 
     if (colorAttribute == -1) colorAttribute = 2;
 
-    attributes = new List<int>.from([aVertexPosition, aTextureCoord,
-        colorAttribute], growable: false);
-
-    // Add those custom shaders!
-    uniforms.forEach((uniform) {
-      uniform.location = context.getUniformLocation(program, uniform.name);
-
-      // Initialize all sampler 2d uniforms.
-      if (uniform.type == gl.SAMPLER_2D) {
-        uniform.init(context);
-      }
-    });
+    attributes = new List<int>.from([aVertexPosition, aPositionCoord, aScale,
+        aRotation, aTextureCoord, colorAttribute], growable: false);
 
     this.program = program;
-  }
-
-  /// Updates the shader uniform values.
-  void syncUniforms() {
-    UniformSampler2D._textureCount = 0;
-    uniforms.forEach((uniform) => uniform.sync);
   }
 
   @override

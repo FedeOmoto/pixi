@@ -15,10 +15,31 @@
 part of pixi;
 
 // TODO: document.
-abstract class RenderSession {
-  CanvasRenderingContext context;
-  final MaskManager maskManager;
-  BlendModes<int> currentBlendMode;
+abstract class UniformMatrix extends Uniform {
+  bool transpose = false; // TODO: ???
+  Float32List value;
 
-  RenderSession(this.context, this.maskManager);
+  UniformMatrix(int type, String name, Float32List value) : super(type, name) {
+    bool error = false;
+
+    switch (type) {
+      case gl.FLOAT_MAT2:
+        if (value.length != 4) error = true;
+        break;
+
+      case gl.FLOAT_MAT3:
+        if (value.length != 9) error = true;
+        break;
+
+      case gl.FLOAT_MAT4:
+        if (value.length != 16) error = true;
+        break;
+    }
+
+    if (error) {
+      throw new StateError('Invalid value length.');
+    }
+
+    this.value = value;
+  }
 }

@@ -24,20 +24,20 @@ class WebGLMaskManager extends MaskManager {
     var context = renderSession.context as gl.RenderingContext;
 
     if (maskStack.isEmpty) {
-      context.enable(context.STENCIL_TEST);
-      context.stencilFunc(context.ALWAYS, 1, 1);
+      context.enable(gl.STENCIL_TEST);
+      context.stencilFunc(gl.ALWAYS, 1, 1);
     }
 
     maskStack.add(maskData);
 
     context.colorMask(false, false, false, false);
-    context.stencilOp(context.KEEP, context.KEEP, context.INCR);
+    context.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
 
     WebGLGraphics.current.renderGraphics(maskData, renderSession);
 
     context.colorMask(true, true, true, true);
-    context.stencilFunc(context.NOTEQUAL, 0, this.maskStack.length);
-    context.stencilOp(context.KEEP, context.KEEP, context.KEEP);
+    context.stencilFunc(gl.NOTEQUAL, 0, maskStack.length);
+    context.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
   }
 
   /// Removes the last filter from the filter stack and doesn't return it.
@@ -50,16 +50,16 @@ class WebGLMaskManager extends MaskManager {
     if (maskData != null) {
       context.colorMask(false, false, false, false);
 
-      context.stencilOp(context.KEEP, context.KEEP, context.DECR);
+      context.stencilOp(gl.KEEP, gl.KEEP, gl.DECR);
 
       WebGLGraphics.current.renderGraphics(maskData, renderSession);
 
       context.colorMask(true, true, true, true);
-      context.stencilFunc(context.NOTEQUAL, 0, this.maskStack.length);
-      context.stencilOp(context.KEEP, context.KEEP, context.KEEP);
+      context.stencilFunc(gl.NOTEQUAL, 0, maskStack.length);
+      context.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
     }
 
-    if (maskStack.isEmpty) context.disable(context.STENCIL_TEST);
+    if (maskStack.isEmpty) context.disable(gl.STENCIL_TEST);
   }
 
   /// Destroys the mask stack.

@@ -25,7 +25,6 @@ class CanvasRenderSession extends RenderSession {
    */
   bool roundPixels = false;
 
-  CanvasRenderSession(CanvasRenderingContext2D context, CanvasRenderer
-      renderer, CanvasMaskManager maskManager, [this.scaleMode]) : super(context,
-      renderer, maskManager);
+  CanvasRenderSession(CanvasRenderingContext2D context, CanvasMaskManager
+      maskManager, [this.scaleMode]) : super(context, maskManager);
 }

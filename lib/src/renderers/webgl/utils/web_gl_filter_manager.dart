@@ -277,7 +277,7 @@ class WebGLFilterManager {
     uvList[6] = filterArea.width / width;
     uvList[7] = filterArea.height / height;
 
-    context.bufferSubData(gl.ARRAY_BUFFER, 0, tuvList);
+    context.bufferSubData(gl.ARRAY_BUFFER, 0, uvList);
 
     context.viewport(0, 0, sizeX, sizeY);
 
@@ -305,31 +305,33 @@ class WebGLFilterManager {
   void applyFilterPass(Filter filter, Rectangle<num> filterArea, int width, int
       height) {
     // Use program.
-    var shader = filter._shaders[(renderSession.renderer as
-        WebGLRenderer).contextId];
+    var shader = filter._shaders[WebGLContextManager.current.id(context)];
 
     if (shader == null) {
       shader = new PixiShader(context);
 
-      shader.fragmentSrc = filter.fragmentSrc;
-      shader.uniforms = filter.uniforms;
+      shader.fragmentSrc = filter._fragmentSrc;
+      shader.uniforms = filter._uniforms;
       shader.init();
 
-      filter._shaders[(renderSession.renderer as WebGLRenderer).contextId] =
-          shader;
+      filter._shaders[WebGLContextManager.current.id(context)] = shader;
     }
 
-    // set the shader
+    // Set the shader.
     context.useProgram(shader.program);
 
     context.uniform2f(shader.projectionVector, width / 2, -height / 2);
     context.uniform2f(shader.offsetVector, 0, 0);
 
-    if (filter._uniforms.dimensions != null) {
-      filter.uniforms.dimensions.value[0] = width;
-      filter.uniforms.dimensions.value[1] = height;
-      filter.uniforms.dimensions.value[2] = vertexList[0];
-      filter.uniforms.dimensions.value[3] = vertexList[5];
+    UniformMatrix4fv dimensions = filter._uniforms.firstWhere((uniform) {
+      return uniform.name == 'dimensions';
+    }, orElse: () => null);
+
+    if (dimensions != null) {
+      dimensions.value[0] = width.toDouble();
+      dimensions.value[1] = height.toDouble();
+      dimensions.value[2] = vertexList[0];
+      dimensions.value[3] = vertexList[5];
     }
 
     shader.syncUniforms();

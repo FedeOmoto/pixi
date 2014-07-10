@@ -341,11 +341,11 @@ class WebGLSpriteBatch {
     // If the batch is length 0 then return as there is nothing to draw.
     if (currentBatchSize == 0) return;
 
-    var texture = currentBaseTexture._glTextures[(renderSession.renderer as
-        WebGLRenderer).contextId];
+    var contextId = WebGLContextManager.current.id(context);
+    var texture = currentBaseTexture._glTextures[contextId];
 
     if (texture == null) {
-      texture = _createWebGLTexture(currentBaseTexture, renderSession);
+      texture = WebGLRenderer._createWebGLTexture(currentBaseTexture, context);
     }
 
     // Bind the current texture.

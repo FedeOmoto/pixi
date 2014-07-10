@@ -58,7 +58,7 @@ class CanvasRenderer extends Renderer {
     maskManager = new CanvasMaskManager();
 
     // The render session is just a bunch of parameters used for rendering.
-    renderSession = new CanvasRenderSession(context, this, maskManager);
+    renderSession = new CanvasRenderSession(context, maskManager);
   }
 
   /// Renders the stage to its canvas view.
@@ -89,7 +89,7 @@ class CanvasRenderer extends Renderer {
       // Need to add some events!
       if (!stage._interactiveEventsAdded) {
         stage._interactiveEventsAdded = true;
-        stage.interactionManager.setTarget(this);
+        stage.interactionManager._setTarget(this);
       }
     }
 

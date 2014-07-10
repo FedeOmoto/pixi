@@ -16,5 +16,75 @@ part of pixi;
 
 // TODO: document.
 abstract class Shader {
-  // TODO
+  gl.RenderingContext context;
+
+  /// The WebGL program.
+  gl.Program program;
+
+  /// The fragment shader.
+  String fragmentSrc;
+
+  /// The vertex shader.
+  String vertexSrc;
+
+  List<int> attributes;
+
+  gl.UniformLocation projectionVector, offsetVector;
+
+  int aVertexPosition, colorAttribute;
+
+  List<Uniform> uniforms;
+
+  Shader(this.context) {
+    setProgramSource();
+    init();
+  }
+
+  /// Should set the vertex and fragment shader source.
+  void setProgramSource();
+
+  /// Initialises the shader.
+  void init();
+
+  /// Destroys the shader.
+  void destroy();
+
+  gl.Program compileProgram(String vertexSrc, String fragmentSrc) {
+    var fragmentShader = compileFragmentShader(fragmentSrc);
+    var vertexShader = compileVertexShader(vertexSrc);
+
+    var shaderProgram = context.createProgram();
+
+    context.attachShader(shaderProgram, vertexShader);
+    context.attachShader(shaderProgram, fragmentShader);
+    context.linkProgram(shaderProgram);
+
+    if (!context.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+      print('Could not initialise shaders!');
+    }
+
+    return shaderProgram;
+  }
+
+  gl.Shader compileVertexShader(String shaderSrc) {
+    return _compileShader(shaderSrc, gl.VERTEX_SHADER);
+  }
+
+  gl.Shader compileFragmentShader(String shaderSrc) {
+    return _compileShader(shaderSrc, gl.FRAGMENT_SHADER);
+  }
+
+  gl.Shader _compileShader(String shaderSrc, int shaderType) {
+    var shader = context.createShader(shaderType);
+
+    context.shaderSource(shader, shaderSrc);
+    context.compileShader(shader);
+
+    if (!context.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      print(context.getShaderInfoLog(shader));
+      return null;
+    }
+
+    return shader;
+  }
 }

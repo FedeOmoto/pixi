@@ -15,45 +15,38 @@
 part of pixi;
 
 // TODO: document.
-class PixiShader extends Shader {
-  gl.UniformLocation uSampler, dimensions;
+class PrimitiveShader extends Shader {
+  gl.UniformLocation tintColor, translationMatrix, alpha;
 
-  int aTextureCoord;
-
-  PixiShader(gl.RenderingContext context) : super(context);
+  PrimitiveShader(gl.RenderingContext context) : super(context);
 
   @override
   void setProgramSource() {
     fragmentSrc =
         '''
-        precision lowp float;
-        varying vec2 vTextureCoord;
+        precision mediump float;
         varying vec4 vColor;
-        uniform sampler2D uSampler;
 
         void main(void) {
-          gl_FragColor = texture2D(uSampler, vTextureCoord) * vColor;
+          gl_FragColor = vColor;
         }''';
 
     vertexSrc =
         '''
         attribute vec2 aVertexPosition;
-        attribute vec2 aTextureCoord;
-        attribute vec2 aColor;
-
+        attribute vec4 aColor;
+        uniform mat3 translationMatrix;
         uniform vec2 projectionVector;
         uniform vec2 offsetVector;
-
-        varying vec2 vTextureCoord;
+        uniform float alpha;
+        uniform vec3 tint;
         varying vec4 vColor;
 
-        const vec2 center = vec2(-1.0, 1.0);
-
         void main(void) {
-          gl_Position = vec4(((aVertexPosition + offsetVector) / projectionVector) + center, 0.0, 1.0);
-          vTextureCoord = aTextureCoord;
-          vec3 color = mod(vec3(aColor.y / 65536.0, aColor.y / 256.0, aColor.y), 256.0) / 256.0;
-          vColor = vec4(color * aColor.x, aColor.x);
+          vec3 v = translationMatrix * vec3(aVertexPosition, 1.0);
+          v -= offsetVector.xyx;
+          gl_Position = vec4(v.x / projectionVector.x - 1.0, v.y / -projectionVector.y + 1.0, 0.0, 1.0);
+          vColor = aColor * vec4(tint * alpha, alpha);
         }''';
   }
 
@@ -64,38 +57,22 @@ class PixiShader extends Shader {
     context.useProgram(program);
 
     // Get and store the uniforms for the shader.
-    uSampler = context.getUniformLocation(program, 'uSampler');
     projectionVector = context.getUniformLocation(program, 'projectionVector');
     offsetVector = context.getUniformLocation(program, 'offsetVector');
-    dimensions = context.getUniformLocation(program, 'dimensions');
+    tintColor = context.getUniformLocation(program, 'tint');
 
     // Get and store the attributes.
     aVertexPosition = context.getAttribLocation(program, 'aVertexPosition');
-    aTextureCoord = context.getAttribLocation(program, 'aTextureCoord');
     colorAttribute = context.getAttribLocation(program, 'aColor');
 
-    if (colorAttribute == -1) colorAttribute = 2;
+    attributes = new List<int>.from([aVertexPosition, colorAttribute], growable:
+        false);
 
-    attributes = new List<int>.from([aVertexPosition, aTextureCoord,
-        colorAttribute], growable: false);
-
-    // Add those custom shaders!
-    uniforms.forEach((uniform) {
-      uniform.location = context.getUniformLocation(program, uniform.name);
-
-      // Initialize all sampler 2d uniforms.
-      if (uniform.type == gl.SAMPLER_2D) {
-        uniform.init(context);
-      }
-    });
+    translationMatrix = context.getUniformLocation(program, 'translationMatrix'
+        );
+    alpha = context.getUniformLocation(program, 'alpha');
 
     this.program = program;
-  }
-
-  /// Updates the shader uniform values.
-  void syncUniforms() {
-    UniformSampler2D._textureCount = 0;
-    uniforms.forEach((uniform) => uniform.sync);
   }
 
   @override

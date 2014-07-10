@@ -14,14 +14,13 @@
 
 part of pixi;
 
-// Creates a WebGL texture.
-gl.Texture _createWebGLTexture(BaseTexture texture, WebGLRenderSession
-    renderSession) {
-  // TODO
-}
+// TODO: document.
+class UniformMatrix3fv extends UniformMatrix {
+  UniformMatrix3fv(String name, Float32List value) : super(gl.FLOAT_MAT3, name,
+      value);
 
-// Updates a WebGL texture.
-void _updateWebGLTexture(BaseTexture texture, WebGLRenderSession renderSession)
-    {
-  // TODO
+  @override
+  void sync(gl.RenderingContext context) {
+    context.uniformMatrix3fv(location, transpose, value);
+  }
 }

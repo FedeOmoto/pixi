@@ -16,6 +16,17 @@ part of pixi;
 
 // TODO: document.
 abstract class Uniform {
-  // TODO: finish implementation.
+  /// The uniform type.
+  final int type;
+
+  /// The uniform name.
   final String name;
+
+  /// The uniform location.
+  gl.UniformLocation location;
+
+  Uniform(this.type, this.name);
+
+  /// Updates the shader uniform value.
+  void sync(gl.RenderingContext context);
 }

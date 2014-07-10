@@ -15,10 +15,12 @@
 part of pixi;
 
 // TODO: document.
-abstract class RenderSession {
-  CanvasRenderingContext context;
-  final MaskManager maskManager;
-  BlendModes<int> currentBlendMode;
+class UniformMatrix2fv extends UniformMatrix {
+  UniformMatrix2fv(String name, Float32List value) : super(gl.FLOAT_MAT2, name,
+      value);
 
-  RenderSession(this.context, this.maskManager);
+  @override
+  void sync(gl.RenderingContext context) {
+    context.uniformMatrix2fv(location, transpose, value);
+  }
 }

@@ -15,10 +15,15 @@
 part of pixi;
 
 // TODO: document.
-abstract class RenderSession {
-  CanvasRenderingContext context;
-  final MaskManager maskManager;
-  BlendModes<int> currentBlendMode;
+class Uniform3f extends Uniform {
+  double x;
+  double y;
+  double z;
 
-  RenderSession(this.context, this.maskManager);
+  Uniform3f(String name, this.x, this.y, this.z) : super(gl.FLOAT_VEC3, name);
+
+  @override
+  void sync(gl.RenderingContext context) {
+    context.uniform3f(location, x, y, z);
+  }
 }

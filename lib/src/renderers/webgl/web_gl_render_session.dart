@@ -21,9 +21,9 @@ class WebGLRenderSession extends RenderSession {
   WebGLFilterManager filterManager;
   WebGLSpriteBatch spriteBatch;
   BlendModes<int> currentBlendMode;
-  Point<int> projection;
+  Point<double> projection;
   Point<int> offset;
 
-  WebGLRenderSession(gl.RenderingContext context, WebGLRenderer
-      renderer, WebGLMaskManager maskManager) : super(context, renderer, maskManager);
+  WebGLRenderSession(gl.RenderingContext context, WebGLMaskManager maskManager)
+      : super(context, maskManager);
 }

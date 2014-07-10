@@ -14,11 +14,13 @@
 
 part of pixi;
 
-// TODO: document.
-abstract class RenderSession {
-  CanvasRenderingContext context;
-  final MaskManager maskManager;
-  BlendModes<int> currentBlendMode;
+/// Holds all information related to an Interaction event.
+class InteractionData {
+  // TODO
 
-  RenderSession(this.context, this.maskManager);
+  /**
+   * This point stores the global coords of where the touch/mouse event
+   * happened.
+   */
+  Point<int> global = new Point<int>(0, 0);
 }

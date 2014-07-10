@@ -23,11 +23,31 @@ part of pixi;
 class InteractionManager {
   // TODO
 
+  /// A reference to the stage.
   Stage stage;
+
+  /// The mouse data.
+  InteractionData mouse = new InteractionData();
 
   bool _dirty = false;
 
   InteractionManager(this.stage);
 
   bool get dirty => _dirty;
+
+  void _update() {
+    // TODO
+  }
+
+  void _setTarget(Renderer target) {
+    // TODO
+  }
+
+  void removeEvents() {
+    // TODO
+  }
+
+  void _setTargetDomElement(HtmlElement domElement) {
+    // TODO
+  }
 }

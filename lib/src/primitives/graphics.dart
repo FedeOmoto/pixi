@@ -246,7 +246,7 @@ class Graphics extends DisplayObjectContainer {
         _generateCachedSprite();
 
         // We will also need to update the texture on the GPU too!
-        _updateWebGLTexture(_cachedSprite.texture.baseTexture,
+        WebGLRenderer._updateWebGLTexture(_cachedSprite.texture.baseTexture,
             renderSession.context);
 
         _dirty = false;
@@ -463,10 +463,11 @@ class Graphics extends DisplayObjectContainer {
     }
 
     // Leverage the anchor to account for the offset of the element.
-    _cachedSprite.anchor.left = -(bounds.left / bounds.width);
-    _cachedSprite.anchor.top = -(bounds.top / bounds.height);
+    _cachedSprite.anchor.x = -(bounds.left / bounds.width);
+    _cachedSprite.anchor.y = -(bounds.top / bounds.height);
 
-    this._cachedSprite.buffer.context.translate(-bounds.left, -bounds.top);
+    (_cachedSprite.buffer.context as CanvasRenderingContext2D).translate(
+        -bounds.left, -bounds.top);
 
     CanvasGraphics.current.renderGraphics(this, _cachedSprite.buffer.context);
     _cachedSprite.alpha = alpha;

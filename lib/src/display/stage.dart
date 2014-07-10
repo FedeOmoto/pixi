@@ -68,7 +68,7 @@ class Stage extends DisplayObjectContainer {
    * element.
    */
   void setInteractionDelegate(HtmlElement domElement) {
-    interactionManager.setTargetDomElement(domElement);
+    interactionManager._setTargetDomElement(domElement);
   }
 
   // Updates the object transform for rendering.
@@ -85,7 +85,7 @@ class Stage extends DisplayObjectContainer {
       interactionManager._dirty = true;
     }
 
-    if (_interactive) interactionManager.update();
+    if (_interactive) interactionManager._update();
   }
 
   /// This will return the point containing global coords of the mouse.
