@@ -24,5 +24,9 @@ class CustomEvents implements Events {
 
   CustomEvents(this._ptr);
 
-  CustomEventStream<CustomEvent> operator [](String type) => _eventStream[type];
+  CustomEventStream<CustomEvent> operator [](String type) {
+    _eventStream.putIfAbsent(type, () => new CustomEventStream<CustomEvent>(
+        _ptr, type, false));
+    return _eventStream[type];
+  }
 }

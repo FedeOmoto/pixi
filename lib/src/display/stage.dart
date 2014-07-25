@@ -32,6 +32,8 @@ class Stage extends DisplayObjectContainer {
 
   bool _interactiveEventsAdded = false;
 
+  List<double> backgroundColorSplit = new List<double>(3);
+
   /**
    * Creating a stage is a mandatory process when you use Pixi, which is as
    * simple as this: 
@@ -55,7 +57,7 @@ class Stage extends DisplayObjectContainer {
     // Optimize hit detection a bit.
     _stage.hitArea = new Rectangle<int>(0, 0, 100000, 100000);
 
-    if (backgroundColor == null) backgroundColor = Color.black;
+    setBackgroundColor(backgroundColor);
   }
 
   /// Whether the stage is dirty and needs to have interactions updated.
@@ -86,6 +88,17 @@ class Stage extends DisplayObjectContainer {
     }
 
     if (_interactive) interactionManager._update();
+  }
+
+  /// Sets the background color for the stage.
+  void setBackgroundColor(Color backgroundColor) {
+    if (backgroundColor == null) this.backgroundColor = Color.black;
+
+    var rgba = this.backgroundColor.rgba;
+
+    backgroundColorSplit[0] = rgba.r / 255;
+    backgroundColorSplit[1] = rgba.g / 255;
+    backgroundColorSplit[2] = rgba.b / 255;
   }
 
   /// This will return the point containing global coords of the mouse.

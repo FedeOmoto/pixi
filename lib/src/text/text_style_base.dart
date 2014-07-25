@@ -15,17 +15,19 @@
 part of pixi;
 
 // TODO: document.
-class WebGLProperties {
-  List<double> points = new List<double>();
-  List<int> indices = new List<int>();
-  int lastIndex = 0;
-  gl.Buffer buffer;
-  gl.Buffer indexBuffer;
-  Float32List glPoints;
-  Uint16List glIndices;
+abstract class TextStyleBase {
+  String _font;
 
-  WebGLProperties(gl.RenderingContext context) {
-    buffer = context.createBuffer();
-    indexBuffer = context.createBuffer();
-  }
+  /// The color that will be used on the text.
+  Color fill = Color.white;
+
+  /**
+   * Alignment for multiline text ('left', 'center' or 'right'), does not affect
+   * single line text.
+   */
+  String align = 'left';
+
+  void set font(String font);
+
+  String get font;
 }

@@ -27,6 +27,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:web_gl' as gl;
 import 'dart:async';
+import 'dart:convert' show JSON;
 
 import 'package:csslib/parser.dart' show Color;
 export 'package:csslib/parser.dart' show Color;
@@ -36,6 +37,7 @@ part 'src/utils/event_target.dart';
 part 'src/utils/custom_events.dart';
 part 'src/utils/custom_event_stream.dart';
 part 'src/utils/event_stream_subscription.dart';
+part 'src/utils/polyk.dart';
 part 'src/geom/point.dart';
 part 'src/geom/shape.dart';
 part 'src/geom/rectangle.dart';
@@ -45,6 +47,7 @@ part 'src/display/display_object_container.dart';
 part 'src/display/stage.dart';
 part 'src/display/sprite.dart';
 part 'src/display/sprite_batch.dart';
+part 'src/display/movie_clip.dart';
 part 'src/primitives/graphics.dart';
 part 'src/primitives/path.dart';
 part 'src/filters/filter.dart';
@@ -90,10 +93,21 @@ part 'src/textures/texture.dart';
 part 'src/textures/render_texture.dart';
 part 'src/textures/base_texture.dart';
 part 'src/textures/texture_uvs.dart';
-part 'src/interaction/interaction_manager.dart';
 part 'src/interaction/interaction_data.dart';
+part 'src/interaction/interaction_event_stream.dart';
+part 'src/interaction/interaction_manager.dart';
 part 'src/extras/tiling_sprite.dart';
 part 'src/extras/strip.dart';
+part 'src/loaders/loader.dart';
+part 'src/loaders/asset_loader.dart';
+part 'src/loaders/image_loader.dart';
+part 'src/loaders/json_loader.dart';
+part 'src/loaders/bitmap_font_loader.dart';
+part 'src/text/text_style_base.dart';
+part 'src/text/text_style.dart';
+part 'src/text/bitmap_text_style.dart';
+part 'src/text/text.dart';
+part 'src/text/bitmap_text.dart';
 
 /// Useful for testing against if your lib is using pixi.
 const String VERSION = '1.5.3';
@@ -129,11 +143,6 @@ class ScaleModes<int> extends Enum<int> {
   static const ScaleModes LINEAR = const ScaleModes(0);
   static const ScaleModes NEAREST = const ScaleModes(1);
 }
-
-/// Interaction frequency.
-const int INTERACTION_FREQUENCY = 30;
-
-const bool AUTO_PREVENT_DEFAULT = true;
 
 const double RAD_TO_DEG = 180.0 / math.PI;
 const double DEG_TO_RAD = math.PI / 180.0;

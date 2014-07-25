@@ -25,6 +25,69 @@ class DisplayObjectContainer extends DisplayObject {
   /// The array of children of this container.
   List<DisplayObject> get children => _children;
 
+  /// Stream of `mouseover` events handled by this [DisplayObjectContainer].
+  final InteractionEventStream onMouseOver = new InteractionEventStream(
+      'mouseover');
+
+  /// Stream of `mouseout` events handled by this [DisplayObjectContainer].
+  final InteractionEventStream onMouseOut = new InteractionEventStream(
+      'mouseout');
+
+  /// Stream of `mousemove` events handled by this [DisplayObjectContainer].
+  final InteractionEventStream onMouseMove = new InteractionEventStream(
+      'mousemove');
+
+  /// Stream of `mousedown` events handled by this [DisplayObjectContainer].
+  final InteractionEventStream onMouseDown = new InteractionEventStream(
+      'mousedown');
+
+  /// Stream of `mouseup` events handled by this [DisplayObjectContainer].
+  final InteractionEventStream onMouseUp = new InteractionEventStream('mouseup'
+      );
+
+  /**
+   * Stream of `mouseupoutside` events handled by this [DisplayObjectContainer].
+   */
+  final InteractionEventStream onMouseUpOutside = new InteractionEventStream(
+      'mouseup');
+
+  /// Stream of `click` events handled by this [DisplayObjectContainer].
+  final InteractionEventStream onClick = new InteractionEventStream('mouseup');
+
+  /// Stream of `touchmove` events handled by this [DisplayObjectContainer].
+  final InteractionEventStream onTouchMove = new InteractionEventStream(
+      'touchmove');
+
+  /// Stream of `touchstart` events handled by this [DisplayObjectContainer].
+  final InteractionEventStream onTouchStart = new InteractionEventStream(
+      'touchstart');
+
+  /// Stream of `touchend` events handled by this [DisplayObjectContainer].
+  final InteractionEventStream onTouchEnd = new InteractionEventStream(
+      'touchend');
+
+  /**
+   * Stream of `touchendoutside` events handled by this
+   * [DisplayObjectContainer].
+   */
+  final InteractionEventStream onTouchEndOutside = new InteractionEventStream(
+      'touchend');
+
+  /// Stream of `tap` events handled by this [DisplayObjectContainer].
+  final InteractionEventStream onTap = new InteractionEventStream('touchend');
+
+  bool _interactiveChildren = false;
+
+  bool _hit = false;
+
+  bool _isOver = false;
+
+  bool _mouseIsDown = false;
+
+  bool _isDown = false;
+
+  Map<int, InteractionData> _touchData = new Map<int, InteractionData>();
+
   /// Adds a child to the container.
   void addChild(DisplayObject child) => addChildAt(child, _children.length);
 
@@ -180,7 +243,7 @@ class DisplayObjectContainer extends DisplayObject {
   @override
   Rectangle<num> get getLocalBounds {
     var matrixCache = _worldTransform;
-    _worldTransform = new Matrix();
+    _worldTransform = Matrix.identity;
 
     _children.forEach((child) => child._updateTransform());
 

@@ -74,8 +74,7 @@ class CanvasTinter {
   }
 
   /// Tint a texture using the "multiply" operation.
-  void tintWithMultiply(RenderTexture texture, Color color, CanvasElement
-      canvas) {
+  void tintWithMultiply(Texture texture, Color color, CanvasElement canvas) {
     var context = canvas.context2D;
 
     var frame = texture.frame;
@@ -99,8 +98,7 @@ class CanvasTinter {
   }
 
   /// Tint a texture using the "overlay" operation.
-  void tintWithOverlay(RenderTexture texture, Color color, CanvasElement canvas)
-      {
+  void tintWithOverlay(Texture texture, Color color, CanvasElement canvas) {
     var context = canvas.context2D;
 
     var frame = texture.frame;
@@ -118,8 +116,7 @@ class CanvasTinter {
   }
 
   /// Tint a texture pixel per pixel.
-  void tintWithPerPixel(RenderTexture texture, Color color, CanvasElement
-      canvas) {
+  void tintWithPerPixel(Texture texture, Color color, CanvasElement canvas) {
     var context = canvas.context2D;
 
     var frame = texture.frame;
@@ -132,15 +129,18 @@ class CanvasTinter {
         frame.top, frame.width, frame.height, 0, 0, frame.width, frame.height);
 
     var rgba = color.rgba;
+    var r = rgba.r / 255;
+    var g = rgba.g / 255;
+    var b = rgba.b / 255;
 
     var pixelData = context.getImageData(0, 0, frame.width, frame.height);
 
     var pixels = pixelData.data;
 
     for (var i = 0; i < pixels.length; i += 4) {
-      pixels[i + 0] *= rgba.r;
-      pixels[i + 1] *= rgba.g;
-      pixels[i + 2] *= rgba.b;
+      pixels[i + 0] *= r;
+      pixels[i + 1] *= g;
+      pixels[i + 2] *= b;
     }
 
     context.putImageData(pixelData, 0, 0);
@@ -152,10 +152,11 @@ class CanvasTinter {
 
     var rgba = color.rgba;
 
-    var r = math.min(255, (rgba.r / step) * step);
-    var g = math.min(255, (rgba.g / step) * step);
-    var b = math.min(255, (rgba.b / step) * step);
+    var r = math.min(255, ((rgba.r / 255) / step) * step);
+    var g = math.min(255, ((rgba.g / 255) / step) * step);
+    var b = math.min(255, ((rgba.b / 255) / step) * step);
 
-    return new Color.createRgba(r, g, b);
+    return new Color.createRgba((r * 255).toInt(), (g * 255).toInt(), (b *
+        255).toInt());
   }
 }

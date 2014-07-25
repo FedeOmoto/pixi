@@ -29,7 +29,7 @@ class Sprite extends DisplayObjectContainer {
   Point<double> anchor = new Point<double>(0.0, 0.0);
 
   /// The texture that the sprite is using.
-  RenderTexture texture;
+  Texture texture;
 
   // The width of the sprite (this is initially set by the texture).
   int _width = 0;
@@ -43,6 +43,7 @@ class Sprite extends DisplayObjectContainer {
   /// The blend mode to be applied to the sprite.
   BlendModes<int> blendMode = BlendModes.NORMAL;
 
+  /// Whether this sprite is renderable or not.
   bool renderable = true;
 
   bool _textureChange = false;
@@ -89,7 +90,6 @@ class Sprite extends DisplayObjectContainer {
   }
 
   /**
-   *
    * Creates a sprite that will contain a texture based on an image url.
    * If the image is not in the texture cache it will be loaded.
    */
@@ -120,7 +120,7 @@ class Sprite extends DisplayObjectContainer {
    */
   void set height(int value) {
     scale.y = value / texture.frame.height;
-    _width = value;
+    _height = value;
   }
 
   /// Sets the texture of the sprite.
@@ -288,8 +288,8 @@ class Sprite extends DisplayObjectContainer {
       // Allow for trimming.
       if (renderSession.roundPixels) {
         context.setTransform(_worldTransform.a, _worldTransform.c,
-            _worldTransform.b, _worldTransform.d, _worldTransform.tx.floorToDouble(),
-            _worldTransform.ty.floorToDouble());
+            _worldTransform.b, _worldTransform.d, _worldTransform.tx.truncate(),
+            _worldTransform.ty.truncate());
       } else {
         context.setTransform(_worldTransform.a, _worldTransform.c,
             _worldTransform.b, _worldTransform.d, _worldTransform.tx, _worldTransform.ty);

@@ -49,8 +49,9 @@ class RenderTexture extends Texture {
   Renderer renderer;
   TextureBuffer textureBuffer;
   Point<double> projection;
+
+  /// This method will draw the display object to the texture.
   RenderMethod render;
-  Map<String, CanvasImageSource> tintCache;
 
   RenderTexture([int width, int height, Renderer renderer, ScaleModes<int>
       scaleMode]) : super(new BaseTexture(), new Rectangle<int>(0, 0, width == null ?
@@ -95,10 +96,10 @@ class RenderTexture extends Texture {
       projection.y = -_height / 2;
 
       var context = renderer.context as gl.RenderingContext;
-      context.bindTexture(context.TEXTURE_2D,
-          baseTexture._glTextures[(this.renderer as WebGLRenderer).contextId]);
-      context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, _width, _height,
-          0, context.RGBA, context.UNSIGNED_BYTE);
+      context.bindTexture(gl.TEXTURE_2D, baseTexture._glTextures[(this.renderer
+          as WebGLRenderer).contextId]);
+      context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, _width, _height, 0, gl.RGBA,
+          gl.UNSIGNED_BYTE);
     } else {
       textureBuffer.resize(this.width, this.height);
     }
@@ -106,10 +107,10 @@ class RenderTexture extends Texture {
     Texture._frameUpdates.add(this);
   }
 
-  /// This method will draw the display object to the texture.
-  void _renderWebGL(DisplayObjectContainer displayObject, [Point<int>
+  // This method will draw the display object to the texture.
+  void _renderWebGL(DisplayObjectContainer displayObject, [Point<num>
       position, bool clear = false]) {
-    //TODO: replace position with matrix...
+    // TODO: replace position with matrix...
     var context = renderer.context as gl.RenderingContext;
 
     var textureBuffer = this.textureBuffer as FilterTexture;
@@ -118,13 +119,13 @@ class RenderTexture extends Texture {
 
     context.viewport(0, 0, _width, _height);
 
-    context.bindFramebuffer(context.FRAMEBUFFER, textureBuffer.frameBuffer);
+    context.bindFramebuffer(gl.FRAMEBUFFER, textureBuffer.frameBuffer);
 
     if (clear) textureBuffer.clear();
 
     // TODO: -? create a new one??? dont think so!
     var originalWorldTransform = displayObject._worldTransform;
-    displayObject._worldTransform = RenderTexture._tempMatrix;
+    displayObject._worldTransform = _tempMatrix;
     // Modify to flip...
     displayObject._worldTransform.d = -1.0;
     displayObject._worldTransform.ty = projection.y * -2;
@@ -145,12 +146,12 @@ class RenderTexture extends Texture {
     displayObject._worldTransform = originalWorldTransform;
   }
 
-  /// This method will draw the display object to the texture.
-  void _renderCanvas(DisplayObjectContainer displayObject, [Point<int>
+  // This method will draw the display object to the texture.
+  void _renderCanvas(DisplayObjectContainer displayObject, [Point<num>
       position, bool clear = false]) {
     var originalWorldTransform = displayObject._worldTransform;
 
-    displayObject._worldTransform = RenderTexture._tempMatrix;
+    displayObject._worldTransform = _tempMatrix;
 
     if (position != null) {
       displayObject._worldTransform.tx = position.x.toDouble();

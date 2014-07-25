@@ -33,7 +33,7 @@ class WebGLMaskManager extends MaskManager {
     context.colorMask(false, false, false, false);
     context.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
 
-    WebGLGraphics.current.renderGraphics(maskData, renderSession);
+    WebGLGraphics.current._renderGraphics(maskData, renderSession);
 
     context.colorMask(true, true, true, true);
     context.stencilFunc(gl.NOTEQUAL, 0, maskStack.length);
@@ -52,7 +52,7 @@ class WebGLMaskManager extends MaskManager {
 
       context.stencilOp(gl.KEEP, gl.KEEP, gl.DECR);
 
-      WebGLGraphics.current.renderGraphics(maskData, renderSession);
+      WebGLGraphics.current._renderGraphics(maskData, renderSession);
 
       context.colorMask(true, true, true, true);
       context.stencilFunc(gl.NOTEQUAL, 0, maskStack.length);

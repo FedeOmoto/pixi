@@ -231,10 +231,10 @@ class WebGLSpriteBatch {
 
     var uvs = tilingSprite._uvs;
 
-    tilingSprite.tilePosition.x %= texture.baseTexture.width *
-        tilingSprite.tileScaleOffset.x;
-    tilingSprite.tilePosition.y %= texture.baseTexture.height *
-        tilingSprite.tileScaleOffset.y;
+    tilingSprite.tilePosition.x %= (texture.baseTexture.width *
+        tilingSprite.tileScaleOffset.x).toInt();
+    tilingSprite.tilePosition.y %= (texture.baseTexture.height *
+        tilingSprite.tileScaleOffset.y).toInt();
 
     var offsetX = tilingSprite.tilePosition.x / (texture.baseTexture.width *
         tilingSprite.tileScaleOffset.x);

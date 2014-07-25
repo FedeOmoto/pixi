@@ -89,7 +89,7 @@ class CanvasRenderer extends Renderer {
       // Need to add some events!
       if (!stage._interactiveEventsAdded) {
         stage._interactiveEventsAdded = true;
-        stage.interactionManager._setTarget(this);
+        stage.interactionManager._setTarget = this;
       }
     }
 

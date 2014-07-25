@@ -16,10 +16,10 @@ part of pixi;
 
 // TODO: document.
 class Path {
-  static const int POLY = 0;
-  static const int RECT = 1;
-  static const int CIRC = 2;
-  static const int ELIP = 3;
+  static const int POLY = Graphics.POLY;
+  static const int RECT = Graphics.RECT;
+  static const int CIRC = Graphics.CIRC;
+  static const int ELIP = Graphics.ELIP;
 
   int type;
   int lineWidth;
@@ -28,7 +28,9 @@ class Path {
   Color fillColor;
   double fillAlpha;
   bool fill;
-  List<int> points = new List<int>();
+  List<num> points;
 
-  Path([this.type, this.lineWidth, this.lineColor, this.lineAlpha, this.fillColor, this.fillAlpha, this.fill, this.points]);
+  Path([this.type, this.lineWidth, this.lineColor, this.lineAlpha, this.fillColor, this.fillAlpha, this.fill, this.points]) {
+    if (points == null) points = new List<num>();
+  }
 }

@@ -28,7 +28,7 @@ class CanvasMaskManager extends MaskManager {
     context.setTransform(transform.a, transform.c, transform.b, transform.d,
         transform.tx, transform.ty);
 
-    CanvasGraphics.current.renderGraphicsMask(maskData, context);
+    CanvasGraphics.current._renderGraphicsMask(maskData, context);
 
     context.clip();
 

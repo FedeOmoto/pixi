@@ -123,11 +123,7 @@ class BaseTexture extends EventTarget {
   }
 
   /// Stream of update events handled by this [BaseTexture].
-  CustomEventStream<CustomEvent> get onLoaded {
-    _events._eventStream.putIfAbsent('loaded', () =>
-        new CustomEventStream<CustomEvent>(this, 'loaded', false));
-    return _events['type'];
-  }
+  CustomEventStream<CustomEvent> get onLoaded => on['loaded'];
 
   /// The width of the base texture set when the image has loaded.
   int get width => _width;

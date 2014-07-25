@@ -15,13 +15,13 @@
 part of pixi;
 
 /**
- * The Shape interface provides definitions for objects that represent some form
- * of geometric shape.
+ * The Shape class provides definitions for objects that represent some form of
+ * geometric shape.
  */
 abstract class Shape {
   /// Creates a clone of this object.
   Shape clone();
 
   /// Tests whether [point] is inside or along the edges of `this`.
-  bool containsPoint(Point<int> point);
+  bool containsPoint(Point<num> point);
 }

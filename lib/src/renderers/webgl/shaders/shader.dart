@@ -33,7 +33,7 @@ abstract class Shader {
 
   int aVertexPosition, colorAttribute;
 
-  List<Uniform> uniforms;
+  List<Uniform> uniforms = new List<Uniform>();
 
   Shader(this.context) {
     setProgramSource();

@@ -24,7 +24,7 @@ abstract class DisplayObject {
    * The coordinate of the object relative to the local coordinates of the
    * parent.
    */
-  Point<int> position = new Point<int>(0, 0);
+  Point<num> position = new Point<num>(0, 0);
 
   /// The scale factor of the object.
   Point<double> scale = new Point<double>(1.0, 1.0);
@@ -90,7 +90,7 @@ abstract class DisplayObject {
   Rectangle<num> _bounds = new Rectangle<num>(0, 0, 1, 1);
 
   // The most up-to-date bounds of the object
-  Rectangle<int> _currentBounds;
+  Rectangle<num> _currentBounds;
 
   // The original, cached mask of the object
   Graphics _mask;
@@ -252,7 +252,7 @@ abstract class DisplayObject {
   Rectangle<num> getBounds([Matrix matrix]) => new Rectangle<num>(0, 0, 0, 0);
 
   /// Retrieves the local bounds of the displayObject as a rectangle object.
-  Rectangle<num> get getLocalBounds => getBounds(new Matrix());
+  Rectangle<num> get getLocalBounds => getBounds(Matrix.identity);
 
   /// Sets the object's stage reference, the stage this object is connected to.
   void set setStageReference(Stage stage) {
@@ -266,8 +266,8 @@ abstract class DisplayObject {
   RenderTexture generateTexture(Renderer renderer) {
     var bounds = getLocalBounds;
 
-    var renderTexture = new RenderTexture(bounds.width, bounds.height, renderer
-        );
+    var renderTexture = new RenderTexture(bounds.width.truncate(),
+        bounds.height.truncate(), renderer);
     renderTexture.render(this, new Point<int>(-bounds.left, -bounds.top));
 
     return renderTexture;
@@ -288,12 +288,14 @@ abstract class DisplayObject {
     var bounds = getLocalBounds;
 
     if (_cachedSprite == null) {
-      var renderTexture = new RenderTexture(bounds.width, bounds.height);
+      var renderTexture = new RenderTexture(bounds.width.truncate(),
+          bounds.height.truncate());
 
       _cachedSprite = new Sprite(renderTexture);
       _cachedSprite._worldTransform = _worldTransform;
     } else {
-      _cachedSprite.texture.resize(bounds.width, bounds.height);
+      (_cachedSprite.texture as RenderTexture).resize(bounds.width.truncate(),
+          bounds.height.truncate());
     }
 
     // REMOVE filter!
@@ -301,7 +303,8 @@ abstract class DisplayObject {
     _filters = null;
 
     _cachedSprite.filters = tempFilters;
-    _cachedSprite.texture.render(this, new Point(-bounds.left, -bounds.top));
+    (_cachedSprite.texture as RenderTexture).render(this, new Point<num>(
+        -bounds.left, -bounds.top));
 
     _cachedSprite.anchor.x = -(bounds.left / bounds.width);
     _cachedSprite.anchor.y = -(bounds.top / bounds.height);
@@ -330,13 +333,13 @@ abstract class DisplayObject {
    * Returns the position of the displayObject on the x axis relative to the
    * local coordinates of the parent.
    */
-  int get x => position.x;
+  num get x => position.x;
 
   /**
    * Sets the position of the displayObject on the x axis relative to the
    * local coordinates of the parent.
    */
-  void set x(int value) {
+  void set x(num value) {
     position.x = value;
   }
 
@@ -344,13 +347,13 @@ abstract class DisplayObject {
    * Returns the position of the displayObject on the y axis relative to the
    * local coordinates of the parent.
    */
-  int get y => position.y;
+  num get y => position.y;
 
   /**
    * Sets the position of the displayObject on the y axis relative to the
    * local coordinates of the parent.
    */
-  void set y(int value) {
+  void set y(num value) {
     position.y = value;
   }
 }

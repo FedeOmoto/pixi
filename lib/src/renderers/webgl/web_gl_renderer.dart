@@ -168,8 +168,9 @@ class WebGLRenderer extends Renderer {
     if (Renderer._defaultRenderer == null) Renderer._defaultRenderer = this;
 
     // Deal with losing context.
-    _listeners[0] = view.onWebGlContextLost.listen(_handleContextLost);
-    _listeners[1] = view.onWebGlContextRestored.listen(_handleContextRestored);
+    _listeners[0] = this.view.onWebGlContextLost.listen(_handleContextLost);
+    _listeners[1] = this.view.onWebGlContextRestored.listen(
+        _handleContextRestored);
 
     if (!gl.RenderingContext.supported) {
       throw new UnsupportedError(
@@ -204,8 +205,8 @@ class WebGLRenderer extends Renderer {
 
     context.disable(gl.DEPTH_TEST);
     context.disable(gl.CULL_FACE);
-
     context.enable(gl.BLEND);
+
     context.colorMask(true, true, true, transparent);
   }
 
@@ -215,7 +216,7 @@ class WebGLRenderer extends Renderer {
 
     // If rendering a new stage clear the batches.
     if (_stage != stage) {
-      if (stage._interactive) stage.interactionManager.removeEvents();
+      if (stage._interactive) stage.interactionManager._removeEvents();
 
       // TODO: make this work.
       // Don't think this is needed any more?
@@ -234,7 +235,7 @@ class WebGLRenderer extends Renderer {
       // Need to add some events!
       if (!stage._interactiveEventsAdded) {
         stage._interactiveEventsAdded = true;
-        stage.interactionManager._setTarget(this);
+        stage.interactionManager._setTarget = this;
       }
     }
 
@@ -243,16 +244,16 @@ class WebGLRenderer extends Renderer {
     context.viewport(0, 0, width, height);
 
     // Make sure we are bound to the main frame buffer.
-    context.bindFramebuffer(context.FRAMEBUFFER, null);
+    context.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     if (transparent) {
-      context.clearColor(0, 0, 0, 0);
+      context.clearColor(0.0, 0.0, 0.0, 0.0);
     } else {
-      var rgba = stage.backgroundColor.rgba;
-      context.clearColor(rgba.r, rgba.g, rgba.b, 1);
+      context.clearColor(stage.backgroundColorSplit[0],
+          stage.backgroundColorSplit[1], stage.backgroundColorSplit[2], 1.0);
     }
 
-    context.clear(context.COLOR_BUFFER_BIT);
+    context.clear(gl.COLOR_BUFFER_BIT);
 
     _renderDisplayObject(stage, projection);
 
@@ -261,12 +262,12 @@ class WebGLRenderer extends Renderer {
       // Need to add some events!
       if (!stage._interactiveEventsAdded) {
         stage._interactiveEventsAdded = true;
-        stage.interactionManager._setTarget(this);
+        stage.interactionManager._setTarget = this;
       }
     } else {
       if (stage._interactiveEventsAdded) {
         stage._interactiveEventsAdded = false;
-        stage.interactionManager._setTarget(this);
+        stage.interactionManager._setTarget = this;
       }
     }
   }

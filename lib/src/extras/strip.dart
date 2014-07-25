@@ -16,5 +16,7 @@ part of pixi;
 
 // TODO: document.
 class Strip extends Sprite {
+  // TODO
 
+  Strip(Texture texture, int width, int height) : super(texture);
 }

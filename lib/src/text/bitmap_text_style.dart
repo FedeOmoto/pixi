@@ -15,17 +15,12 @@
 part of pixi;
 
 // TODO: document.
-class WebGLProperties {
-  List<double> points = new List<double>();
-  List<int> indices = new List<int>();
-  int lastIndex = 0;
-  gl.Buffer buffer;
-  gl.Buffer indexBuffer;
-  Float32List glPoints;
-  Uint16List glIndices;
-
-  WebGLProperties(gl.RenderingContext context) {
-    buffer = context.createBuffer();
-    indexBuffer = context.createBuffer();
+class BitmapTextStyle extends TextStyleBase {
+  @override
+  void set font(String font) {
+    _font = font;
   }
+
+  @override
+  String get font => _font;
 }

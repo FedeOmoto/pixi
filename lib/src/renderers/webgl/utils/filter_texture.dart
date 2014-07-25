@@ -72,8 +72,8 @@ class FilterTexture extends TextureBuffer {
     var context = this.context as gl.RenderingContext;
 
     context.bindTexture(gl.TEXTURE_2D, texture);
-    context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA,
-        gl.UNSIGNED_BYTE);
+    context.texImage2DTyped(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0,
+        gl.RGBA, gl.UNSIGNED_BYTE, null);
 
     // Update the stencil buffer width and height.
     context.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);

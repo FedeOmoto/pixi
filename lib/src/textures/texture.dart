@@ -34,9 +34,14 @@ class Texture extends EventTarget {
   /// The trim rectangle.
   Rectangle<int> trim;
 
+  Map<String, CanvasImageSource> tintCache;
+
   TextureUvs _uvs;
   int _width, _height;
   bool _updateFrame = false;
+  bool _needsUpdate = false;
+  bool _isTiling = false;
+  CanvasBuffer _canvasBuffer;
 
   Texture(this.baseTexture, [Rectangle<int> frame]) {
     if (frame == null) {
@@ -120,11 +125,7 @@ class Texture extends EventTarget {
   }
 
   /// Stream of update events handled by this [Texture].
-  CustomEventStream<CustomEvent> get onUpdate {
-    _events._eventStream.putIfAbsent('update', () =>
-        new CustomEventStream<CustomEvent>(this, 'update', false));
-    return _events['type'];
-  }
+  CustomEventStream<CustomEvent> get onUpdate => on['update'];
 
   /// Destroys this texture.
   void destroy([bool destroyBase = false]) {

@@ -52,8 +52,8 @@ class Graphics extends DisplayObjectContainer {
   /// Current path.
   Path currentPath = new Path();
 
-  /// List containing some WebGL-related properties used by the WebGL renderer.
-  List<WebGLProperties> _webGL = new List<WebGLProperties>();
+  /// Map containing some WebGL-related properties used by the WebGL renderer.
+  Map<int, WebGLProperties> _webGL = new Map<int, WebGLProperties>();
 
   /// Whether this shape is being used as a mask.
   bool isMask = false;
@@ -95,7 +95,9 @@ class Graphics extends DisplayObjectContainer {
    * as the [lineTo] method or the [drawCircle] method.
    */
   Graphics lineStyle([int width = 0, Color color, double alpha = 1.0]) {
-    if (currentPath.points.isEmpty) graphicsData.removeLast();
+    if (currentPath.points.isEmpty) {
+      if (graphicsData.isNotEmpty) graphicsData.removeLast();
+    }
 
     lineWidth = width;
     lineColor = color == null ? Color.black : color;
@@ -111,7 +113,9 @@ class Graphics extends DisplayObjectContainer {
 
   /// Moves the current drawing position to (x, y).
   Graphics moveTo(int x, int y) {
-    if (currentPath.points.isEmpty) graphicsData.removeLast();
+    if (currentPath.points.isEmpty) {
+      if (graphicsData.isNotEmpty) graphicsData.removeLast();
+    }
 
     currentPath = new Path(Path.POLY, lineWidth, lineColor, lineAlpha,
         _fillColor, fillAlpha, _filling);
@@ -160,7 +164,9 @@ class Graphics extends DisplayObjectContainer {
 
   /// Draws a rectangle.
   Graphics drawRect(int x, int y, int width, int height) {
-    if (currentPath.points.isEmpty) graphicsData.removeLast();
+    if (currentPath.points.isEmpty) {
+      if (graphicsData.isNotEmpty) graphicsData.removeLast();
+    }
 
     currentPath = new Path(Path.RECT, lineWidth, lineColor, lineAlpha,
         _fillColor, fillAlpha, _filling, [x, y, width, height]);
@@ -173,7 +179,9 @@ class Graphics extends DisplayObjectContainer {
 
   /// Draws a circle.
   Graphics drawCircle(int x, int y, int radius) {
-    if (currentPath.points.isEmpty) graphicsData.removeLast();
+    if (currentPath.points.isEmpty) {
+      if (graphicsData.isNotEmpty) graphicsData.removeLast();
+    }
 
     currentPath = new Path(Path.CIRC, lineWidth, lineColor, lineAlpha,
         _fillColor, fillAlpha, _filling, [x, y, radius, radius]);
@@ -186,7 +194,9 @@ class Graphics extends DisplayObjectContainer {
 
   /// Draws an ellipse.
   Graphics drawEllipse(int x, int y, int width, int height) {
-    if (currentPath.points.isEmpty) graphicsData.removeLast();
+    if (currentPath.points.isEmpty) {
+      if (graphicsData.isNotEmpty) graphicsData.removeLast();
+    }
 
     currentPath = new Path(Path.ELIP, lineWidth, lineColor, lineAlpha,
         _fillColor, fillAlpha, _filling, [x, y, width, height]);
@@ -229,7 +239,7 @@ class Graphics extends DisplayObjectContainer {
 
     canvasBuffer.context.translate(-bounds.left, -bounds.top);
 
-    CanvasGraphics.current.renderGraphics(this, canvasBuffer.context);
+    CanvasGraphics.current._renderGraphics(this, canvasBuffer.context);
 
     return texture;
   }
@@ -275,7 +285,7 @@ class Graphics extends DisplayObjectContainer {
             blendModeWebGL[1]);
       }
 
-      WebGLGraphics.current.renderGraphics(this, renderSession);
+      WebGLGraphics.current._renderGraphics(this, renderSession);
 
       // Only render if it has children!
       if (_children.isNotEmpty) {
@@ -316,7 +326,7 @@ class Graphics extends DisplayObjectContainer {
 
     context.setTransform(transform.a, transform.c, transform.b, transform.d,
         transform.tx, transform.ty);
-    CanvasGraphics.current.renderGraphics(this, context);
+    CanvasGraphics.current._renderGraphics(this, context);
 
     // Simple render children!
     _children.forEach((child) {
@@ -327,13 +337,13 @@ class Graphics extends DisplayObjectContainer {
   /// Retrieves the bounds of the graphic shape as a rectangle object.
   @override
   Rectangle<num> getBounds([Matrix matrix]) {
-    if (this.bounds == null) updateBounds();
+    if (bounds == null) updateBounds();
 
-    var w0 = this.bounds.left;
-    var w1 = this.bounds.width + this.bounds.left;
+    var w0 = bounds.left;
+    var w1 = bounds.width + bounds.left;
 
-    var h0 = this.bounds.top;
-    var h1 = this.bounds.height + this.bounds.top;
+    var h0 = bounds.top;
+    var h1 = bounds.height + bounds.top;
 
     var worldTransform = matrix == null ? _worldTransform : matrix;
 
@@ -378,15 +388,13 @@ class Graphics extends DisplayObjectContainer {
     maxY = y3 > maxY ? y3 : maxY;
     maxY = y4 > maxY ? y4 : maxY;
 
-    var bounds = _bounds;
+    _bounds.left = minX;
+    _bounds.width = maxX - minX;
 
-    bounds.left = minX;
-    bounds.width = maxX - minX;
+    _bounds.top = minY;
+    _bounds.height = maxY - minY;
 
-    bounds.top = minY;
-    bounds.height = maxY - minY;
-
-    return bounds;
+    return _bounds;
   }
 
   /// Update the bounds of the object.
@@ -405,7 +413,7 @@ class Graphics extends DisplayObjectContainer {
 
       points = data.points;
 
-      if (type == Graphics.RECT) {
+      if (type == RECT) {
         x = points[0] - lineWidth / 2;
         y = points[1] - lineWidth / 2;
         w = points[2] + lineWidth;
@@ -416,7 +424,7 @@ class Graphics extends DisplayObjectContainer {
 
         minY = y < minY ? x : minY;
         maxY = y + h > maxY ? y + h : maxY;
-      } else if (type == Graphics.CIRC || type == Graphics.ELIP) {
+      } else if (type == CIRC || type == ELIP) {
         x = points[0];
         y = points[1];
         w = points[2] + lineWidth / 2;
@@ -469,7 +477,7 @@ class Graphics extends DisplayObjectContainer {
     (_cachedSprite.buffer.context as CanvasRenderingContext2D).translate(
         -bounds.left, -bounds.top);
 
-    CanvasGraphics.current.renderGraphics(this, _cachedSprite.buffer.context);
+    CanvasGraphics.current._renderGraphics(this, _cachedSprite.buffer.context);
     _cachedSprite.alpha = alpha;
   }
 

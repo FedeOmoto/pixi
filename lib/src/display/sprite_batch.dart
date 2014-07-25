@@ -106,10 +106,9 @@ class SpriteBatch extends DisplayObjectContainer {
         // avoid any kind of setTransform call.
         context.drawImageScaledFromSource(texture.baseTexture.source,
             frame.left, frame.top, frame.width, frame.height, ((child.anchor.x) *
-            (-frame.width * child.scale.x) + child.position.x + 0.5).floorToDouble(),
+            (-frame.width * child.scale.x) + child.position.x + 0.5).truncate(),
             ((child.anchor.y) * (-frame.height * child.scale.y) + child.position.y +
-            0.5).floorToDouble(), frame.width * child.scale.x, frame.height * child.scale.y
-            );
+            0.5).truncate(), frame.width * child.scale.x, frame.height * child.scale.y);
       } else {
         if (!isRotated) isRotated = true;
 
@@ -119,8 +118,8 @@ class SpriteBatch extends DisplayObjectContainer {
 
         if (renderSession.roundPixels) {
           context.setTransform(childTransform.a, childTransform.c,
-              childTransform.b, childTransform.d, childTransform.tx.floorToDouble(),
-              childTransform.ty.floorToDouble());
+              childTransform.b, childTransform.d, childTransform.tx.truncate(),
+              childTransform.ty.truncate());
         } else {
           context.setTransform(childTransform.a, childTransform.c,
               childTransform.b, childTransform.d, childTransform.tx, childTransform.ty);
@@ -128,8 +127,8 @@ class SpriteBatch extends DisplayObjectContainer {
 
         context.drawImageScaledFromSource(texture.baseTexture.source,
             frame.left, frame.top, frame.width, frame.height, ((child.anchor.x) *
-            (-frame.width) + 0.5).floorToDouble(), ((child.anchor.y) * (-frame.height) +
-            0.5).floorToDouble(), frame.width, frame.height);
+            (-frame.width) + 0.5).truncate(), ((child.anchor.y) * (-frame.height) +
+            0.5).truncate(), frame.width, frame.height);
       }
     }
   }

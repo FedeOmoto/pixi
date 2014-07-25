@@ -16,6 +16,8 @@ part of pixi;
 
 /// An affine transformation matrix.
 class Matrix {
+  static Matrix identity = new Matrix();
+
   /// Position (0, 0) in a 3x3 affine transformation matrix.
   double a;
 
@@ -48,12 +50,12 @@ class Matrix {
   }
 
   /// Creates a list from the current Matrix object.
-  Float32List toList() {
-    return new Float32List.fromList([a, b, tx, c, d, ty, 0, 0, 1]);
+  Float32List asList() {
+    return new Float32List.fromList([a, b, tx, c, d, ty, 0.0, 0.0, 1.0]);
   }
 
   /// Creates a list from the transpose of the current Matrix object.
-  Float32List toListTransposed() {
-    return new Float32List.fromList([a, c, 0, b, d, 0, tx, ty, 1]);
+  Float32List asListTransposed() {
+    return new Float32List.fromList([a, c, 0.0, b, d, 0.0, tx, ty, 1.0]);
   }
 }

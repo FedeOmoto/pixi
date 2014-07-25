@@ -63,8 +63,8 @@ class WebGLFilterManager {
 
     var projection = renderSession.projection;
 
-    width = projection.x * 2;
-    height = -projection.y * 2;
+    width = (projection.x * 2).toInt();
+    height = (-projection.y * 2).toInt();
     this.buffer = buffer;
   }
 
