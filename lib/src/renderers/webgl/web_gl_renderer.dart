@@ -141,7 +141,7 @@ class WebGLRenderer extends Renderer {
 
   Point<double> projection;
 
-  Point<int> offset = new Point<int>(0, 0);
+  Point<num> offset = new Point<num>(0, 0);
 
   // Whether the context was lost.
   bool _contextLost = false;

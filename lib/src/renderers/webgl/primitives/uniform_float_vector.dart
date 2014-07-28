@@ -15,24 +15,28 @@
 part of pixi;
 
 // TODO: document.
-abstract class UniformMatrix extends Uniform {
-  bool transpose = false; // TODO: ???
+abstract class UniformFloatVector extends Uniform {
   Float32List value;
 
-  UniformMatrix(int type, String name, List<double> value) : super(type, name) {
+  UniformFloatVector(int type, String name, List<double> value) : super(type,
+      name) {
     bool error = false;
 
     switch (type) {
-      case gl.FLOAT_MAT2:
+      case gl.FLOAT:
+        if (value.length != 1) error = true;
+        break;
+
+      case gl.FLOAT_VEC2:
+        if (value.length != 2) error = true;
+        break;
+
+      case gl.FLOAT_VEC3:
+        if (value.length != 3) error = true;
+        break;
+
+      case gl.FLOAT_VEC4:
         if (value.length != 4) error = true;
-        break;
-
-      case gl.FLOAT_MAT3:
-        if (value.length != 9) error = true;
-        break;
-
-      case gl.FLOAT_MAT4:
-        if (value.length != 16) error = true;
         break;
     }
 

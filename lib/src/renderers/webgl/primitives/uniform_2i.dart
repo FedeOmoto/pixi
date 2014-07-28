@@ -19,7 +19,7 @@ class Uniform2i extends Uniform {
   int x;
   int y;
 
-  Uniform2i(String name, this.x, this.y) : super(gl.INT_VEC2, name);
+  Uniform2i(String name, this.x, this.y) : super(gl.INT, name);
 
   @override
   void sync(gl.RenderingContext context) {

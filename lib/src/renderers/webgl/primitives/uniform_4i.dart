@@ -21,8 +21,7 @@ class Uniform4i extends Uniform {
   int z;
   int w;
 
-  Uniform4i(String name, this.x, this.y, this.z, this.w) : super(gl.INT_VEC4,
-      name);
+  Uniform4i(String name, this.x, this.y, this.z, this.w) : super(gl.INT, name);
 
   @override
   void sync(gl.RenderingContext context) {

@@ -19,7 +19,7 @@ class Uniform2f extends Uniform {
   double x;
   double y;
 
-  Uniform2f(String name, this.x, this.y) : super(gl.FLOAT_VEC2, name);
+  Uniform2f(String name, this.x, this.y) : super(gl.FLOAT, name);
 
   @override
   void sync(gl.RenderingContext context) {

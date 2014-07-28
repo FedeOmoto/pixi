@@ -16,7 +16,7 @@ part of pixi;
 
 // TODO: document.
 class UniformMatrix4fv extends UniformMatrix {
-  UniformMatrix4fv(String name, Float32List value) : super(gl.FLOAT_MAT4, name,
+  UniformMatrix4fv(String name, List<double> value) : super(gl.FLOAT_MAT4, name,
       value);
 
   @override

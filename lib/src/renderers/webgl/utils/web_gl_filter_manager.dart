@@ -20,8 +20,8 @@ class WebGLFilterManager {
 
   List<FilterBlock> filterStack = new List<FilterBlock>();
 
-  int offsetX = 0;
-  int offsetY = 0;
+  num offsetX = 0;
+  num offsetY = 0;
 
   gl.RenderingContext context;
 
@@ -85,7 +85,9 @@ class WebGLFilterManager {
     offsetX += filterBlock._filterArea.left;
     offsetY += filterBlock._filterArea.top;
 
-    var texture = texturePool.removeLast();
+    var texture;
+
+    if (texturePool.isNotEmpty) texture = texturePool.removeLast();
 
     if (texture == null) {
       texture = new FilterTexture(context, width, height);
@@ -112,7 +114,7 @@ class WebGLFilterManager {
     context.bindFramebuffer(gl.FRAMEBUFFER, texture.frameBuffer);
 
     // Set view port.
-    context.viewport(0, 0, filterArea.width, filterArea.height);
+    context.viewport(0, 0, filterArea.width.round(), filterArea.height.round());
 
     projection.x = filterArea.width / 2;
     projection.y = -filterArea.height / 2;
@@ -142,20 +144,21 @@ class WebGLFilterManager {
     var offset = renderSession.offset;
 
     if (filterBlock._filterPasses.length > 1) {
-      context.viewport(0, 0, filterArea.width, filterArea.height);
+      context.viewport(0, 0, filterArea.width.round(), filterArea.height.round()
+          );
 
       context.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 
       vertexList[0] = 0.0;
-      vertexList[1] = filterArea.height;
+      vertexList[1] = filterArea.height.toDouble();
 
-      vertexList[2] = filterArea.width;
-      vertexList[3] = filterArea.height;
+      vertexList[2] = filterArea.width.toDouble();
+      vertexList[3] = filterArea.height.toDouble();
 
       vertexList[4] = 0.0;
       vertexList[5] = 0.0;
 
-      vertexList[6] = filterArea.width;
+      vertexList[6] = filterArea.width.toDouble();
       vertexList[7] = 0.0;
 
       context.bufferSubData(gl.ARRAY_BUFFER, 0, vertexList);
@@ -171,7 +174,9 @@ class WebGLFilterManager {
       context.bufferSubData(gl.ARRAY_BUFFER, 0, uvList);
 
       var inputTexture = texture;
-      var outputTexture = texturePool.removeLast();
+      var outputTexture;
+
+      if (texturePool.isNotEmpty) outputTexture = texturePool.removeLast();
 
       if (outputTexture == null) {
         outputTexture = new FilterTexture(context, width, height);
@@ -196,8 +201,8 @@ class WebGLFilterManager {
         context.bindTexture(gl.TEXTURE_2D, inputTexture.texture);
 
         // Draw texture.
-        applyFilterPass(filterPass, filterArea, filterArea.width,
-            filterArea.height);
+        applyFilterPass(filterPass, filterArea, filterArea.width.round(),
+            filterArea.height.round());
 
         // Swap the textures.
         var temp = inputTexture;
@@ -256,17 +261,17 @@ class WebGLFilterManager {
     // Make sure to flip the y!
     context.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 
-    vertexList[0] = x;
-    vertexList[1] = y + filterArea.height;
+    vertexList[0] = x.toDouble();
+    vertexList[1] = (y + filterArea.height).toDouble();
 
-    vertexList[2] = x + filterArea.width;
-    vertexList[3] = y + filterArea.height;
+    vertexList[2] = (x + filterArea.width).toDouble();
+    vertexList[3] = (y + filterArea.height).toDouble();
 
-    vertexList[4] = x;
-    vertexList[5] = y;
+    vertexList[4] = x.toDouble();
+    vertexList[5] = y.toDouble();
 
-    vertexList[6] = x + filterArea.width;
-    vertexList[7] = y;
+    vertexList[6] = (x + filterArea.width).toDouble();
+    vertexList[7] = y.toDouble();
 
     context.bufferSubData(gl.ARRAY_BUFFER, 0, vertexList);
 
@@ -323,7 +328,7 @@ class WebGLFilterManager {
     context.uniform2f(shader.projectionVector, width / 2, -height / 2);
     context.uniform2f(shader.offsetVector, 0, 0);
 
-    UniformMatrix4fv dimensions = filter._uniforms.firstWhere((uniform) {
+    Uniform4fv dimensions = filter._uniforms.firstWhere((uniform) {
       return uniform.name == 'dimensions';
     }, orElse: () => null);
 

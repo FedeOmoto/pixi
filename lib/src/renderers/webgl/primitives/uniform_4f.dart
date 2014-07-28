@@ -21,8 +21,8 @@ class Uniform4f extends Uniform {
   double z;
   double w;
 
-  Uniform4f(String name, this.x, this.y, this.z, this.w) : super(gl.FLOAT_VEC4,
-      name);
+  Uniform4f(String name, this.x, this.y, this.z, this.w) : super(gl.FLOAT, name
+      );
 
   @override
   void sync(gl.RenderingContext context) {

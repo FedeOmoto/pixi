@@ -95,7 +95,7 @@ class PixiShader extends Shader {
   /// Updates the shader uniform values.
   void syncUniforms() {
     UniformSampler2D._textureCount = 0;
-    uniforms.forEach((uniform) => uniform.sync);
+    uniforms.forEach((uniform) => uniform.sync(context));
   }
 
   @override

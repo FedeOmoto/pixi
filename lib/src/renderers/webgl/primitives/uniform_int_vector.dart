@@ -15,24 +15,27 @@
 part of pixi;
 
 // TODO: document.
-abstract class UniformMatrix extends Uniform {
-  bool transpose = false; // TODO: ???
-  Float32List value;
+abstract class UniformIntVector extends Uniform {
+  Int32List value;
 
-  UniformMatrix(int type, String name, List<double> value) : super(type, name) {
+  UniformIntVector(int type, String name, List<int> value) : super(type, name) {
     bool error = false;
 
     switch (type) {
-      case gl.FLOAT_MAT2:
+      case gl.INT:
+        if (value.length != 1) error = true;
+        break;
+
+      case gl.INT_VEC2:
+        if (value.length != 2) error = true;
+        break;
+
+      case gl.INT_VEC3:
+        if (value.length != 3) error = true;
+        break;
+
+      case gl.INT_VEC4:
         if (value.length != 4) error = true;
-        break;
-
-      case gl.FLOAT_MAT3:
-        if (value.length != 9) error = true;
-        break;
-
-      case gl.FLOAT_MAT4:
-        if (value.length != 16) error = true;
         break;
     }
 
@@ -40,6 +43,6 @@ abstract class UniformMatrix extends Uniform {
       throw new StateError('Invalid value length.');
     }
 
-    this.value = new Float32List.fromList(value);
+    this.value = new Int32List.fromList(value);
   }
 }

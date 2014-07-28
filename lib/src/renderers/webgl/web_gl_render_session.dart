@@ -22,7 +22,7 @@ class WebGLRenderSession extends RenderSession {
   WebGLSpriteBatch spriteBatch;
   BlendModes<int> currentBlendMode;
   Point<double> projection;
-  Point<int> offset;
+  Point<num> offset;
 
   WebGLRenderSession(gl.RenderingContext context, WebGLMaskManager maskManager)
       : super(context, maskManager);

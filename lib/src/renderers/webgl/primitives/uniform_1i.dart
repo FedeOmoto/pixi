@@ -15,15 +15,13 @@
 part of pixi;
 
 // TODO: document.
-class Uniform3i extends Uniform {
+class Uniform1i extends Uniform {
   int x;
-  int y;
-  int z;
 
-  Uniform3i(String name, this.x, this.y, this.z) : super(gl.INT, name);
+  Uniform1i(String name, this.x) : super(gl.INT, name);
 
   @override
   void sync(gl.RenderingContext context) {
-    context.uniform3i(location, x, y, z);
+    context.uniform1i(location, x);
   }
 }

@@ -20,7 +20,7 @@ class Uniform3f extends Uniform {
   double y;
   double z;
 
-  Uniform3f(String name, this.x, this.y, this.z) : super(gl.FLOAT_VEC3, name);
+  Uniform3f(String name, this.x, this.y, this.z) : super(gl.FLOAT, name);
 
   @override
   void sync(gl.RenderingContext context) {

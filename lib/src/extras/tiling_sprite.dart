@@ -23,7 +23,7 @@ class TilingSprite extends Sprite {
   Point<double> tileScaleOffset = new Point<double>(1.0, 1.0);
 
   /// The offset position of the image that is being tiled.
-  Point<int> tilePosition = new Point<int>(0, 0);
+  Point<num> tilePosition = new Point<num>(0, 0);
 
   bool _refreshTexture = false;
   Texture tilingTexture;

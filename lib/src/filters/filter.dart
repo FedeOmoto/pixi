@@ -20,14 +20,12 @@ part of pixi;
  * If you want to make a custom filter this should be your base class.
  */
 abstract class Filter {
-  /**
-  * A list of passes - some filters contain a few steps this array simply stores
-  * the steps in a liniear fashion.
-  * For example the blur filter has two passes blurX and blurY.
-  */
+  // A list of passes - some filters contain a few steps this array simply
+  // stores the steps in a liniear fashion.
+  // For example the blur filter has two passes blurX and blurY.
   List<Filter> _passes = new List<Filter>();
 
-  List<Shader> _shaders = new List<Shader>();
+  Map<int, Shader> _shaders = new Map<int, Shader>();
   bool _dirty = true;
   int _padding = 0;
   List<Uniform> _uniforms = new List<Uniform>();

@@ -38,9 +38,9 @@ class WebGLContextManager {
   WebGLContextManager._internal();
 
   int add(gl.RenderingContext context) {
-    _ids[context] = ++_glContextId;
+    _ids[context] = _glContextId;
     _glContexts[_glContextId] = context;
-    return _glContextId;
+    return _glContextId++;
   }
 
   gl.RenderingContext remove(int contextId) {
