@@ -9,4 +9,6 @@ http://FedeOmoto.github.io/
 
 ### Demos source code ###
 
-https://github.com/FedeOmoto/pixi_examples/
+Pub: http://pub.dartlang.org/packages/pixi_dart
+
+GitHub: https://github.com/FedeOmoto/pixi_examples/
