@@ -29,8 +29,8 @@ import 'dart:web_gl' as gl;
 import 'dart:async';
 import 'dart:convert' show JSON;
 
-import 'package:csslib/parser.dart' show Color;
 export 'package:csslib/parser.dart' show Color;
+import 'package:csslib/parser.dart' show Color;
 
 part 'src/utils/enum.dart';
 part 'src/utils/event_target.dart';
