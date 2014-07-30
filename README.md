@@ -15,4 +15,4 @@ GitHub: https://github.com/FedeOmoto/pixi_examples/
 
 ###Docs
 
-http://www.dartdocs.org/documentation/pixi_dart/0.1.69/index.html#pixi_dart
+http://www.dartdocs.org/documentation/pixi_dart/0.1.68/index.html#pixi_dart
