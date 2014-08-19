@@ -110,6 +110,8 @@ class MovieClip extends Sprite {
 
     int round = (_currentFrame + 0.5).truncate();
 
+    _currentFrame = _currentFrame % textures.length;
+
     if (loop || round < textures.length) {
       setTexture(textures[round % textures.length]);
     } else if (round >= textures.length) {

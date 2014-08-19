@@ -22,10 +22,14 @@ class WebGLShaderManager {
   List<bool> tempAttribState;
 
   PrimitiveShader primitiveShader;
+  ComplexPrimitiveShader complexPrimitiveShader;
   PixiShader defaultShader;
   PixiFastShader fastShader;
+  StripShader stripShader;
 
   Shader currentShader;
+
+  int _currentId;
 
   WebGLShaderManager(this.context) {
     setContext(context);
@@ -38,13 +42,19 @@ class WebGLShaderManager {
     // The next one is used for rendering primitives.
     primitiveShader = new PrimitiveShader(context);
 
+    // The next one is used for rendering triangle strips.
+    complexPrimitiveShader = new ComplexPrimitiveShader(context);
+
     // This shader is used for the default sprite rendering.
     defaultShader = new PixiShader(context);
 
     // This shader is used for the fast sprite rendering.
     fastShader = new PixiFastShader(context);
 
-    activateShader(defaultShader);
+    // the next one is used for rendering triangle strips
+    stripShader = new StripShader(context);
+
+    setShader(defaultShader);
   }
 
   /// Takes the attributes given in parameters.
@@ -69,31 +79,27 @@ class WebGLShaderManager {
   }
 
   /// Sets-up the given shader.
-  void activateShader(Shader shader) {
+  bool setShader(Shader shader) {
+    if (_currentId == shader._uid) return false;
+
+    _currentId = shader._uid;
+
     currentShader = shader;
 
     context.useProgram(shader.program);
     setAttribs(shader.attributes);
-  }
 
-  /// Triggers the primitive shader.
-  void activatePrimitiveShader() {
-    context.useProgram(primitiveShader.program);
-    setAttribs(primitiveShader.attributes);
-  }
-
-  /// Disable the primitive shader.
-  void deactivatePrimitiveShader() {
-    context.useProgram(defaultShader.program);
-    setAttribs(defaultShader.attributes);
+    return true;
   }
 
   void destroy() {
     attribState = null;
     tempAttribState = null;
     primitiveShader.destroy();
+    complexPrimitiveShader.destroy();
     defaultShader.destroy();
     fastShader.destroy();
+    stripShader.destroy();
     context = null;
   }
 }

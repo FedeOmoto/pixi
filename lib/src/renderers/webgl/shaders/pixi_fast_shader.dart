@@ -96,13 +96,4 @@ class PixiFastShader extends Shader {
 
     this.program = program;
   }
-
-  @override
-  void destroy() {
-    context.deleteProgram(program);
-    uniforms = null;
-    context = null;
-
-    attributes = null;
-  }
 }

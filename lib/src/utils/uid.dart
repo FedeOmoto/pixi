@@ -14,18 +14,13 @@
 
 part of pixi;
 
-// TODO: document.
-class WebGLProperties {
-  List<double> points = new List<double>();
-  List<int> indices = new List<int>();
-  int lastIndex = 0;
-  gl.Buffer buffer;
-  gl.Buffer indexBuffer;
-  Float32List glPoints;
-  Uint16List glIndices;
+/**
+ * Global utility for generating sequential unique ID numbers. The UID class
+ * uses a static interface (ex. UID.get) and should not be instantiated.
+ */
+abstract class UID {
+  static int _nextID = 0;
 
-  WebGLProperties(gl.RenderingContext context) {
-    buffer = context.createBuffer();
-    indexBuffer = context.createBuffer();
-  }
+  /// Returns the next unique id.
+  static int get get => _nextID++;
 }

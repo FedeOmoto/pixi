@@ -53,8 +53,6 @@ class WebGLRenderer extends Renderer {
   }
 
   static void _updateTextureFrame(Texture texture) {
-    texture._updateFrame = false;
-
     // Now set the uvs. Figured that the uv data sits with a texture rather
     // than a sprite.
     // So uv data is stored on the texture itself.
@@ -70,13 +68,13 @@ class WebGLRenderer extends Renderer {
       texture._glTextures[contextId] = context.createTexture();
 
       context.bindTexture(gl.TEXTURE_2D, texture._glTextures[contextId]);
-
-      // TODO: report Dart bug, the second argument should be a bool.
-      //context.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-      context.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+      context.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,
+          texture.premultipliedAlpha ? 1 : 0);
 
       context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
           texture.source);
+      int boolean = texture.scaleMode == ScaleModes.LINEAR ? gl.LINEAR :
+          gl.NEAREST;
       context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
           texture.scaleMode == ScaleModes.LINEAR ? gl.LINEAR : gl.NEAREST);
       context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
@@ -95,6 +93,8 @@ class WebGLRenderer extends Renderer {
       }
 
       context.bindTexture(gl.TEXTURE_2D, null);
+
+      texture._dirty[contextId] = false;
     }
 
     return texture._glTextures[contextId];
@@ -107,10 +107,8 @@ class WebGLRenderer extends Renderer {
 
     if (texture._glTextures[contextId] != null) {
       context.bindTexture(gl.TEXTURE_2D, texture._glTextures[contextId]);
-
-      // TODO: report Dart bug, the second argument should be a bool.
-      //context.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-      context.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+      context.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,
+          texture.premultipliedAlpha ? 1 : 0);
 
       context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
           texture.source);
@@ -131,7 +129,7 @@ class WebGLRenderer extends Renderer {
         context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
       }
 
-      context.bindTexture(gl.TEXTURE_2D, null);
+      texture._dirty[contextId] = false;
     }
   }
 
@@ -155,16 +153,26 @@ class WebGLRenderer extends Renderer {
   /// Manages the filters.
   WebGLFilterManager filterManager;
 
+  WebGLStencilManager stencilManager;
+
+  WebGLBlendModeManager blendModeManager;
+
   Stage _stage;
 
   final bool antialias;
+
+  /**
+   * The value of the preserveDrawingBuffer flag affects whether or not the
+   * contents of the stencil buffer is retained after rendering.
+   */
+  final bool preserveDrawingBuffer;
 
   List<StreamSubscription<gl.ContextEvent>> _listeners =
       new List<StreamSubscription<gl.ContextEvent>>(2);
 
   WebGLRenderer({int width: 800, int height: 600, CanvasElement view, bool
-      transparent: false, this.antialias: false}) : super(width: width, height:
-      height, view: view, transparent: transparent) {
+      transparent: false, this.antialias: false, this.preserveDrawingBuffer: false}) :
+      super(width: width, height: height, view: view, transparent: transparent) {
     if (Renderer._defaultRenderer == null) Renderer._defaultRenderer = this;
 
     // Deal with losing context.
@@ -178,7 +186,8 @@ class WebGLRenderer extends Renderer {
     }
 
     this.context = this.view.getContext3d(alpha: transparent, antialias:
-        antialias, premultipliedAlpha: transparent, stencil: true);
+        antialias, premultipliedAlpha: transparent, stencil: true,
+        preserveDrawingBuffer: preserveDrawingBuffer);
 
     var context = this.context as gl.RenderingContext;
 
@@ -194,12 +203,16 @@ class WebGLRenderer extends Renderer {
     spriteBatch = new WebGLSpriteBatch(context);
     maskManager = new WebGLMaskManager();
     filterManager = new WebGLFilterManager(context, transparent);
+    stencilManager = new WebGLStencilManager(context);
+    blendModeManager = new WebGLBlendModeManager(context);
 
     this.renderSession = new WebGLRenderSession(context, maskManager);
     var renderSession = this.renderSession as WebGLRenderSession;
     renderSession.shaderManager = shaderManager;
     renderSession.filterManager = filterManager;
+    renderSession.blendModeManager = blendModeManager;
     renderSession.spriteBatch = spriteBatch;
+    renderSession.stencilManager = stencilManager;
 
     context.useProgram(shaderManager.defaultShader.program);
 
@@ -277,6 +290,8 @@ class WebGLRenderer extends Renderer {
       projection, [gl.Framebuffer buffer]) {
     var renderSession = this.renderSession as WebGLRenderSession;
 
+    renderSession.blendModeManager.setBlendMode(BlendModes.NORMAL);
+
     // Reset the render session data.
     renderSession.drawCount = 0;
     renderSession.currentBlendMode = const BlendModes(9999);
@@ -322,7 +337,8 @@ class WebGLRenderer extends Renderer {
     }
 
     this.context = view.getContext3d(alpha: transparent, antialias: antialias,
-        premultipliedAlpha: transparent, stencil: true);
+        premultipliedAlpha: transparent, stencil: true, preserveDrawingBuffer:
+        preserveDrawingBuffer);
 
     WebGLContextManager.current.remove(contextId);
 
@@ -363,7 +379,6 @@ class WebGLRenderer extends Renderer {
 
     shaderManager.destroy();
     spriteBatch.destroy();
-    (maskManager as WebGLMaskManager).destroy();
     filterManager.destroy();
 
     shaderManager = null;

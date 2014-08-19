@@ -82,8 +82,6 @@ class WebGLFastSpriteBatch {
 
     context.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     context.bufferData(gl.ARRAY_BUFFER, vertices, gl.DYNAMIC_DRAW);
-
-    currentBlendMode = const BlendModes(99999);
   }
 
   void begin(SpriteBatch spriteBatch, WebGLRenderSession renderSession) {
@@ -110,7 +108,10 @@ class WebGLFastSpriteBatch {
     this.currentBaseTexture = sprite.texture.baseTexture;
 
     // Check blend mode.
-    if (sprite.blendMode != currentBlendMode) setBlendMode(sprite.blendMode);
+    if (sprite.blendMode != renderSession.blendModeManager.currentBlendMode) {
+      flush();
+      renderSession.blendModeManager.setBlendMode(sprite.blendMode);
+    }
 
     children.forEach((child) => renderSprite(child));
 
@@ -141,10 +142,10 @@ class WebGLFastSpriteBatch {
       var trim = sprite.texture.trim;
 
       w1 = trim.left - sprite.anchor.x * trim.width;
-      w0 = w1 + sprite.texture.frame.width;
+      w0 = w1 + sprite.texture.crop.width;
 
       h1 = trim.top - sprite.anchor.y * trim.height;
-      h0 = h1 + sprite.texture.frame.height;
+      h0 = h1 + sprite.texture.crop.height;
     } else {
       w0 = (sprite.texture.frame.width) * (1 - sprite.anchor.x);
       w1 = (sprite.texture.frame.width) * -sprite.anchor.x;
@@ -310,17 +311,5 @@ class WebGLFastSpriteBatch {
         stride, 7 * 4);
     context.vertexAttribPointer(shader.colorAttribute, 1, gl.FLOAT, false,
         stride, 9 * 4);
-
-    // Set the blend mode.
-    if (currentBlendMode != BlendModes.NORMAL) setBlendMode(BlendModes.NORMAL);
-  }
-
-  void setBlendMode(BlendModes blendMode) {
-    flush();
-
-    currentBlendMode = blendMode;
-
-    var blendModeWebGL = WebGLRenderer.BLEND_MODES[currentBlendMode.value];
-    context.blendFunc(blendModeWebGL[0], blendModeWebGL[1]);
   }
 }

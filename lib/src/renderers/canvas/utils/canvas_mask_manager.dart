@@ -39,7 +39,6 @@ class CanvasMaskManager extends MaskManager {
    * Restores the current drawing context to the state it was before the mask
    * was applied.
    */
-  @override
   void popMask(CanvasRenderSession renderSession) {
     (renderSession.context as CanvasRenderingContext2D).restore();
   }

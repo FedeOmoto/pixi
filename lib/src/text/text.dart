@@ -30,8 +30,8 @@ class Text extends Sprite {
 
   TextStyle _style;
   String _text;
-  bool _dirty;
-  bool _requiresUpdate;
+  bool _dirty = true;
+  bool _requiresUpdate = true;
 
   Text(String text, TextStyle style) : super(new Texture.fromCanvas(
       new CanvasElement())) {
@@ -40,9 +40,44 @@ class Text extends Sprite {
 
     _text = text;
     _style = style;
+  }
 
-    _updateText();
-    _dirty = false;
+  /// Returns the width of the [Text].
+  num get width {
+    if (_dirty) {
+      _updateText();
+      _dirty = false;
+    }
+
+    return scale.x * texture.frame.width;
+  }
+
+  /**
+   * Sets the width of the [Text], setting this will actually modify the scale
+   * to achieve the value set.
+   */
+  void set width(num value) {
+    scale.x = value / texture.frame.width;
+    _width = value;
+  }
+
+  /// Returns the height of the [Text].
+  num get height {
+    if (_dirty) {
+      _updateText();
+      _dirty = false;
+    }
+
+    return scale.y * texture.frame.height;
+  }
+
+  /**
+   * Sets the height of the [Text], setting this will actually modify the scale
+   * to achieve the value set
+   */
+  void set height(num value) {
+    scale.y = value / texture.frame.height;
+    _height = value;
   }
 
   /// Set the style of the text.
@@ -160,8 +195,8 @@ class Text extends Sprite {
   void _updateTexture() {
     texture.baseTexture._width = canvas.width;
     texture.baseTexture._height = canvas.height;
-    texture.frame.width = canvas.width;
-    texture.frame.height = canvas.height;
+    texture.crop.width = texture.frame.width = canvas.width;
+    texture.crop.height = texture.frame.height = canvas.height;
 
     _width = canvas.width;
     _height = canvas.height;
@@ -247,7 +282,12 @@ class Text extends Sprite {
   }
 
   /// Destroys this text object.
-  void destroy(bool destroyTexture) {
-    if (destroyTexture) texture.destroy();
+  void destroy([bool destroyBaseTexture = true]) {
+    // Make sure to reset the the context and canvas, don't want this hanging
+    // around in memory!
+    context = null;
+    canvas = null;
+
+    texture.destroy(destroyBaseTexture);
   }
 }

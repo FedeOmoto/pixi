@@ -16,6 +16,8 @@ part of pixi;
 
 // TODO: document.
 class CanvasRenderSession extends RenderSession {
+  final CanvasMaskManager maskManager;
+
   ScaleModes<int> scaleMode;
 
   /**
@@ -25,6 +27,6 @@ class CanvasRenderSession extends RenderSession {
    */
   bool roundPixels = false;
 
-  CanvasRenderSession(CanvasRenderingContext2D context, CanvasMaskManager
-      maskManager, [this.scaleMode]) : super(context, maskManager);
+  CanvasRenderSession(CanvasRenderingContext2D
+      context, this.maskManager, [this.scaleMode]) : super(context);
 }

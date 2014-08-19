@@ -15,10 +15,10 @@
 part of pixi;
 
 // TODO: document.
-class PrimitiveShader extends Shader {
-  gl.UniformLocation tintColor, translationMatrix, alpha;
+class ComplexPrimitiveShader extends Shader {
+  gl.UniformLocation tintColor, color, translationMatrix, alpha;
 
-  PrimitiveShader(gl.RenderingContext context) : super(context);
+  ComplexPrimitiveShader(gl.RenderingContext context) : super(context);
 
   @override
   void setProgramSource() {
@@ -34,19 +34,21 @@ class PrimitiveShader extends Shader {
     vertexSrc =
         '''
         attribute vec2 aVertexPosition;
-        attribute vec4 aColor;
         uniform mat3 translationMatrix;
         uniform vec2 projectionVector;
         uniform vec2 offsetVector;
-        uniform float alpha;
+
         uniform vec3 tint;
+        uniform float alpha;
+        uniform vec3 color;
+
         varying vec4 vColor;
 
         void main(void) {
           vec3 v = translationMatrix * vec3(aVertexPosition, 1.0);
           v -= offsetVector.xyx;
           gl_Position = vec4(v.x / projectionVector.x - 1.0, v.y / -projectionVector.y + 1.0, 0.0, 1.0);
-          vColor = aColor * vec4(tint * alpha, alpha);
+          vColor = vec4(color * alpha * tint, alpha);
         }''';
   }
 
@@ -60,13 +62,12 @@ class PrimitiveShader extends Shader {
     projectionVector = context.getUniformLocation(program, 'projectionVector');
     offsetVector = context.getUniformLocation(program, 'offsetVector');
     tintColor = context.getUniformLocation(program, 'tint');
+    color = context.getUniformLocation(program, 'color');
 
     // Get and store the attributes.
     aVertexPosition = context.getAttribLocation(program, 'aVertexPosition');
-    colorAttribute = context.getAttribLocation(program, 'aColor');
 
-    attributes = new List<int>.from([aVertexPosition, colorAttribute], growable:
-        false);
+    attributes = [aVertexPosition];
 
     translationMatrix = context.getUniformLocation(program, 'translationMatrix'
         );

@@ -17,8 +17,7 @@ part of pixi;
 // TODO: document.
 abstract class RenderSession {
   CanvasRenderingContext context;
-  final MaskManager maskManager;
   BlendModes<int> currentBlendMode;
 
-  RenderSession(this.context, this.maskManager);
+  RenderSession(this.context);
 }

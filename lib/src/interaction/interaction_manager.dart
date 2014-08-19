@@ -145,17 +145,7 @@ class InteractionManager {
     // Ok... so mouse events??
     // Yes for now :)
     // TODO: OPTIMISE - how often to check??
-    if (_dirty) {
-      _dirty = false;
-
-      interactiveItems.forEach((item) => item._interactiveChildren = false);
-      interactiveItems.clear();
-
-      if (stage._interactive) interactiveItems.add(stage);
-
-      // Go through and collect all the objects that are interactive.
-      _collectInteractiveSprite(stage, stage);
-    }
+    if (_dirty) _rebuildInteractiveGraph();
 
     // Loop through interactive objects!
     var cursor = 'inherit';
@@ -189,8 +179,23 @@ class InteractionManager {
     }
   }
 
+  void _rebuildInteractiveGraph() {
+    _dirty = false;
+
+    interactiveItems.forEach((item) => item._interactiveChildren = false);
+
+    interactiveItems.clear();
+
+    if (stage._interactive) interactiveItems.add(stage);
+
+    // Go through and collect all the objects that are interactive.
+    _collectInteractiveSprite(stage, stage);
+  }
+
   // Is called when the mouse moves across the renderer element.
   void _onMouseMove(MouseEvent event) {
+    if (_dirty) _rebuildInteractiveGraph();
+
     mouse.originalEvent = event;
 
     // TODO: optimize by not check EVERY TIME! Maybe half as often?
@@ -210,6 +215,8 @@ class InteractionManager {
 
   // Is called when the mouse button is pressed down on the renderer element.
   void _onMouseDown(MouseEvent event) {
+    if (_dirty) _rebuildInteractiveGraph();
+
     mouse.originalEvent = event;
 
     if (AUTO_PREVENT_DEFAULT) mouse.originalEvent.preventDefault();
@@ -234,6 +241,8 @@ class InteractionManager {
 
   // Is called when the mouse button is moved out of the renderer element.
   void _onMouseOut(MouseEvent event) {
+    if (_dirty) _rebuildInteractiveGraph();
+
     mouse.originalEvent = event;
 
     interactionDOMElement.style.cursor = 'inherit';
@@ -255,6 +264,8 @@ class InteractionManager {
 
   // Is called when the mouse button is released on the renderer element.
   void _onMouseUp(MouseEvent event) {
+    if (_dirty) _rebuildInteractiveGraph();
+
     mouse.originalEvent = event;
 
     bool up = false;
@@ -345,6 +356,8 @@ class InteractionManager {
 
   // Is called when a touch is moved across the renderer element.
   void _onTouchMove(TouchEvent event) {
+    if (_dirty) _rebuildInteractiveGraph();
+
     var rect = interactionDOMElement.getBoundingClientRect();
     var changedTouches = event.changedTouches;
     var touchData;
@@ -373,6 +386,8 @@ class InteractionManager {
 
   // Is called when a touch is started on the renderer element.
   void _onTouchStart(TouchEvent event) {
+    if (_dirty) _rebuildInteractiveGraph();
+
     var rect = interactionDOMElement.getBoundingClientRect();
 
     if (AUTO_PREVENT_DEFAULT) event.preventDefault();
@@ -420,6 +435,8 @@ class InteractionManager {
 
   // Is called when a touch is ended on the renderer element.
   void _onTouchEnd(TouchEvent event) {
+    if (_dirty) _rebuildInteractiveGraph();
+
     var rect = interactionDOMElement.getBoundingClientRect();
     var changedTouches = event.changedTouches;
 

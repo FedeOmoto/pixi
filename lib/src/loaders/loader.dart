@@ -32,6 +32,7 @@ abstract class Loader extends EventTarget {
       case 'jpeg':
       case 'png':
       case 'gif':
+      case 'webp':
         return new ImageLoader(url, crossOrigin);
 
       case 'json':
@@ -39,9 +40,6 @@ abstract class Loader extends EventTarget {
 
       case 'atlas':
         return new AtlasLoader(url, crossOrigin);
-
-      case 'anim':
-        return new SpineLoader(url, crossOrigin);
 
       case 'xml':
       case 'fnt':
@@ -64,6 +62,6 @@ abstract class Loader extends EventTarget {
     dispatchEvent(new CustomEvent('loaded', detail: this));
   }
 
-  /// Stream of loaded events handled by this [Loader].
+  /// Stream of `loaded` events handled by this [Loader].
   CustomEventStream<CustomEvent> get onLoaded => on['loaded'];
 }

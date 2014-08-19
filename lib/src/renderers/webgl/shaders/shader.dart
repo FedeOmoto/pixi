@@ -16,6 +16,8 @@ part of pixi;
 
 // TODO: document.
 abstract class Shader {
+  int _uid = UID.get;
+
   gl.RenderingContext context;
 
   /// The WebGL program.
@@ -47,7 +49,13 @@ abstract class Shader {
   void init();
 
   /// Destroys the shader.
-  void destroy();
+  void destroy() {
+    context.deleteProgram(program);
+
+    uniforms = null;
+    context = null;
+    attributes = null;
+  }
 
   gl.Program compileProgram(String vertexSrc, String fragmentSrc) {
     var fragmentShader = compileFragmentShader(fragmentSrc);

@@ -53,11 +53,14 @@ class RenderTexture extends Texture {
   /// This method will draw the display object to the texture.
   RenderMethod render;
 
-  RenderTexture([int width, int height, Renderer renderer, ScaleModes<int>
-      scaleMode]) : super(new BaseTexture(), new Rectangle<int>(0, 0, width == null ?
-      100 : width, height == null ? 100 : height)) {
+  RenderTexture([int width = 100, int height = 100, Renderer
+      renderer, ScaleModes<int> scaleMode]) : super(new BaseTexture(),
+      new Rectangle<int>(0, 0, width, height)) {
     _width = frame.width;
     _height = frame.height;
+
+    crop.width = _width;
+    crop.height = _height;
 
     baseTexture._width = _width;
     baseTexture._height = _height;
@@ -81,37 +84,47 @@ class RenderTexture extends Texture {
       baseTexture.source = (textureBuffer as CanvasBuffer).canvas;
     }
 
+    _valid = true;
+
     Texture._frameUpdates.add(this);
   }
 
-  void resize(int width, int height) {
-    _width = width;
-    _height = height;
+  /// Resize the [RenderTexture].
+  void resize(int width, int height, [bool updateBase = false]) {
+    if (width == _width && height == _height) return;
 
-    frame.width = _width;
-    frame.height = _height;
+    _width = frame.width = crop.width = width;
+    _height = frame.height = crop.height = height;
+
+    if (updateBase) {
+      baseTexture._width = _width;
+      baseTexture._height = _height;
+    }
 
     if (renderer.type == Renderer.WEBGL_RENDERER) {
       projection.x = _width / 2;
       projection.y = -_height / 2;
-
-      var context = renderer.context as gl.RenderingContext;
-      context.bindTexture(gl.TEXTURE_2D, baseTexture._glTextures[(this.renderer
-          as WebGLRenderer).contextId]);
-      context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, _width, _height, 0, gl.RGBA,
-          gl.UNSIGNED_BYTE);
-    } else {
-      textureBuffer.resize(this.width, this.height);
     }
 
-    Texture._frameUpdates.add(this);
+    textureBuffer.resize(_width, _height);
+  }
+
+  /// Clears the [RenderTexture].
+  void clear() {
+    if (renderer.type == Renderer.WEBGL_RENDERER) {
+      var context = renderer.context as gl.RenderingContext;
+      var textureBuffer = this.textureBuffer as FilterTexture;
+      context.bindFramebuffer(gl.FRAMEBUFFER, textureBuffer.frameBuffer);
+    }
+
+    textureBuffer.clear();
   }
 
   // This method will draw the display object to the texture.
   void _renderWebGL(DisplayObjectContainer displayObject, [Point<num>
       position, bool clear = false]) {
     // TODO: replace position with matrix...
-    var context = renderer.context as gl.RenderingContext;
+    var context = this.renderer.context as gl.RenderingContext;
 
     var textureBuffer = this.textureBuffer as FilterTexture;
 
@@ -140,10 +153,16 @@ class RenderTexture extends Texture {
     // Update the textures!
     WebGLRenderer._updateTextures();
 
-    (renderer as WebGLRenderer)._renderDisplayObject(displayObject, projection,
+    var renderer = this.renderer as WebGLRenderer;
+
+    renderer.spriteBatch._dirty = true;
+
+    renderer._renderDisplayObject(displayObject, projection,
         textureBuffer.frameBuffer);
 
     displayObject._worldTransform = originalWorldTransform;
+
+    renderer.spriteBatch._dirty = true;
   }
 
   // This method will draw the display object to the texture.
@@ -156,6 +175,9 @@ class RenderTexture extends Texture {
     if (position != null) {
       displayObject._worldTransform.tx = position.x.toDouble();
       displayObject._worldTransform.ty = position.y.toDouble();
+    } else {
+      displayObject._worldTransform.tx = 0.0;
+      displayObject._worldTransform.ty = 0.0;
     }
 
     displayObject._children.forEach((child) => child._updateTransform());

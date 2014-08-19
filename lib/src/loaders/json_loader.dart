@@ -20,6 +20,7 @@ part of pixi;
  * If loading fails this class will dispatch an 'error' event.
  */
 class JsonLoader extends Loader {
+  Map json;
   String _baseUrl;
 
   JsonLoader(String url, [bool crossOrigin]) : super(url, crossOrigin) {
@@ -37,7 +38,7 @@ class JsonLoader extends Loader {
 
   // Invoked when JSON file is loaded.
   void _onJsonLoaded(String jsonString) {
-    var json = JSON.decode(jsonString);
+    json = JSON.decode(jsonString);
 
     if (json['frames'] != null) { // Sprite sheet.
       var textureUrl = baseUrl + json['meta']['image'];
@@ -55,23 +56,20 @@ class JsonLoader extends Loader {
 
           Texture._cache[frameName] = new Texture(texture, rect);
 
-          // Check to see if the sprite has been trimmed.
+          Texture._cache[frameName].crop = rect.clone();
+
+          //  Check to see if the sprite is trimmed
           if (frameData['trimmed']) {
             var actualSize = frameData['sourceSize'];
             var realSize = frameData['spriteSourceSize'];
 
-            texture = Texture._cache[frameName];
-            texture.trim = new Rectangle<int>(realSize['x'], realSize['y'],
-                actualSize['w'], actualSize['h']);
+            Texture._cache[frameName].trim = new Rectangle<int>(realSize['x'],
+                realSize['y'], actualSize['w'], actualSize['h']);
           }
         }
       });
 
       image.load();
-
-    } else if (json['bones']) { // Spine animation.
-      // TODO: implement a Spine runtime? - possible licensing issues.
-      throw new UnsupportedError('Spine not supported right now.');
     } else {
       _onLoaded();
     }

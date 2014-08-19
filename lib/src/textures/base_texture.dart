@@ -40,8 +40,14 @@ class BaseTexture extends EventTarget {
 
   final int id = BaseTexture._cacheIdGenerator++;
 
+  /// Controls if RGB channels should be premultiplied by Alpha (WebGL only).
+  bool premultipliedAlpha = true;
+
   // Used for webGL.
   Map<int, gl.Texture> _glTextures = new Map<int, gl.Texture>();
+
+  // Used for webGL teture updateing.
+  Map<int, bool> _dirty = new Map<int, bool>();
 
   String _imageUrl;
   bool _powerOf2 = false;
@@ -70,10 +76,15 @@ class BaseTexture extends EventTarget {
         _width = _source.width;
         _height = _source.height;
 
-        // Add it to somewhere...
-        BaseTexture._texturesToUpdate.add(this);
+        for (int i = 0; i < _glTextures.length; i++) {
+          _dirty[i] = true;
+        }
 
         dispatchEvent(new CustomEvent('loaded', detail: this));
+      });
+
+      _source.onError.listen((event) {
+        dispatchEvent(new CustomEvent('error', detail: this));
       });
     }
   }
@@ -122,8 +133,11 @@ class BaseTexture extends EventTarget {
     return baseTexture;
   }
 
-  /// Stream of update events handled by this [BaseTexture].
+  /// Stream of `loaded` events handled by this [BaseTexture].
   CustomEventStream<CustomEvent> get onLoaded => on['loaded'];
+
+  /// Stream of `error` events handled by this [BaseTexture].
+  CustomEventStream<CustomEvent> get onError => on['error'];
 
   /// The width of the base texture set when the image has loaded.
   int get width => _width;
@@ -138,8 +152,11 @@ class BaseTexture extends EventTarget {
   void destroy() {
     if (_imageUrl != null) {
       BaseTexture._cache.remove(_imageUrl);
+      Texture._cache.remove(_imageUrl);
       _imageUrl = null;
       _source.src = null;
+    } else if (_source != null && _source.dataset['pixiId'] != null) {
+      BaseTexture._cache.remove(_source.dataset['pixiId']);
     }
 
     source = _source = null;

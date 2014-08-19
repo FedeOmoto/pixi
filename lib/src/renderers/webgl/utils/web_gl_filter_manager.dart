@@ -123,6 +123,8 @@ class WebGLFilterManager {
     offset.y = -filterArea.top;
 
     // Update projection.
+    // Now restore the regular shader.
+    renderSession.shaderManager.setShader(defaultShader);
     context.uniform2f(defaultShader.projectionVector, filterArea.width / 2,
         -filterArea.height / 2);
     context.uniform2f(defaultShader.offsetVector, -filterArea.left,
@@ -297,7 +299,7 @@ class WebGLFilterManager {
     applyFilterPass(filter, filterArea, sizeX, sizeY);
 
     // Now restore the regular shader.
-    context.useProgram(defaultShader.program);
+    renderSession.shaderManager.setShader(defaultShader);
     context.uniform2f(defaultShader.projectionVector, sizeX / 2, -sizeY / 2);
     context.uniform2f(defaultShader.offsetVector, -offsetX, -offsetY);
 
@@ -323,7 +325,7 @@ class WebGLFilterManager {
     }
 
     // Set the shader.
-    context.useProgram(shader.program);
+    renderSession.shaderManager.setShader(shader);
 
     context.uniform2f(shader.projectionVector, width / 2, -height / 2);
     context.uniform2f(shader.offsetVector, 0, 0);

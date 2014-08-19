@@ -28,6 +28,7 @@ class Graphics extends DisplayObjectContainer {
   static const int RECT = 1;
   static const int CIRC = 2;
   static const int ELIP = 3;
+  static const int RREC = 3;
 
   /// The alpha of the fill of this graphics object.
   double fillAlpha = 1.0;
@@ -53,7 +54,7 @@ class Graphics extends DisplayObjectContainer {
   Path currentPath = new Path();
 
   /// Map containing some WebGL-related properties used by the WebGL renderer.
-  Map<int, WebGLProperties> _webGL = new Map<int, WebGLProperties>();
+  Map<int, WebGLGraphicsData> _webGL = new Map<int, WebGLGraphicsData>();
 
   /// Whether this shape is being used as a mask.
   bool isMask = false;
@@ -64,7 +65,10 @@ class Graphics extends DisplayObjectContainer {
   /// The bounds' padding used for bounds calculation.
   int boundsPadding = 10;
 
+  // Used to detect if the graphics object has changed, if this is set to true
+  // then the graphics object will be recalculated.
   bool _dirty = false;
+
   bool _filling = false;
   Color _fillColor;
   bool _clearDirty = false;
@@ -112,7 +116,7 @@ class Graphics extends DisplayObjectContainer {
   }
 
   /// Moves the current drawing position to (x, y).
-  Graphics moveTo(int x, int y) {
+  Graphics moveTo(num x, num y) {
     if (currentPath.points.isEmpty) {
       if (graphicsData.isNotEmpty) graphicsData.removeLast();
     }
@@ -133,6 +137,191 @@ class Graphics extends DisplayObjectContainer {
    */
   Graphics lineTo(int x, int y) {
     currentPath.points.addAll([x, y]);
+    _dirty = true;
+
+    return this;
+  }
+
+  /// Calculate the points for a quadratic bezier curve.
+  Graphics quadraticCurveTo(int cpX, int cpY, int toX, int toY) {
+    if (currentPath.points.isEmpty) moveTo(0, 0);
+
+    num xa, ya;
+    int n = 20;
+    var points = currentPath.points;
+
+    num fromX = points[points.length - 2];
+    num fromY = points.last;
+
+    double j;
+
+    for (int i = 1; i <= n; i++) {
+      j = i / n;
+
+      xa = fromX + ((cpX - fromX) * j);
+      ya = fromY + ((cpY - fromY) * j);
+
+      points.addAll([xa + (((cpX + ((toX - cpX) * j)) - xa) * j), ya + (((cpY +
+          ((toY - cpY) * j)) - ya) * j)]);
+    }
+
+    _dirty = true;
+
+    return this;
+  }
+
+  /// Calculate the points for a bezier curve.
+  Graphics bezierCurveTo(int cpX, int cpY, int cpX2, int cpY2, int toX, int toY)
+      {
+    if (currentPath.points.isEmpty) moveTo(0, 0);
+
+    int n = 20;
+    double dt, dt2, dt3, t2, t3;
+    var points = currentPath.points;
+
+    num fromX = points[points.length - 2];
+    num fromY = points.last;
+
+    double j;
+
+    for (int i = 1; i < n; i++) {
+      j = i / n;
+
+      dt = (1 - j);
+      dt2 = dt * dt;
+      dt3 = dt2 * dt;
+
+      t2 = j * j;
+      t3 = t2 * j;
+
+      points.addAll([dt3 * fromX + 3 * dt2 * j * cpX + 3 * dt * t2 * cpX2 + t3 *
+          toX, dt3 * fromY + 3 * dt2 * j * cpY + 3 * dt * t2 * cpY2 + t3 * toY]);
+    }
+
+    _dirty = true;
+
+    return this;
+  }
+
+  /**
+   * The [arcTo] method creates an arc/curve between two tangents on the canvas.
+   */
+  Graphics arcTo(int x1, int y1, int x2, int y2, double radius) {
+    // Check that path contains subpaths.
+    if (currentPath.points.isEmpty) moveTo(x1, y1);
+
+    var points = this.currentPath.points;
+    num fromX = points[points.length - 2];
+    num fromY = points.last;
+
+    num a1 = fromY - y1;
+    num b1 = fromX - x1;
+    int a2 = y2 - y1;
+    int b2 = x2 - x1;
+    num mm = (a1 * b2 - b1 * a2).abs();
+
+    if (mm < 1.0e-8 || radius == 0) {
+      points.addAll([x1, y1]);
+    } else {
+      num dd = a1 * a1 + b1 * b1;
+      int cc = a2 * a2 + b2 * b2;
+      num tt = a1 * a2 + b1 * b2;
+      double k1 = radius * math.sqrt(dd) / mm;
+      double k2 = radius * math.sqrt(cc) / mm;
+      double j1 = k1 * tt / dd;
+      double j2 = k2 * tt / cc;
+      double cx = k1 * b2 + k2 * b1;
+      double cy = k1 * a2 + k2 * a1;
+      double px = b1 * (k2 + j1);
+      double py = a1 * (k2 + j1);
+      double qx = b2 * (k1 + j2);
+      double qy = a2 * (k1 + j2);
+      double startAngle = math.atan2(py - cy, px - cx);
+      double endAngle = math.atan2(qy - cy, qx - cx);
+
+      arc(cx + x1, cy + y1, radius, startAngle, endAngle, b1 * a2 > b2 * a1);
+    }
+
+    _dirty = true;
+
+    return this;
+  }
+
+  /**
+   * The [arc] method creates an arc/curve (used to create circles, or parts of
+   * circles).
+   */
+  Graphics arc(num cx, num cy, double radius, double startAngle, double
+      endAngle, bool anticlockwise) {
+    double startX = cx + math.cos(startAngle) * radius;
+    double startY = cy + math.sin(startAngle) * radius;
+
+    var points = currentPath.points;
+
+    if (points.isNotEmpty && points[points.length - 2] != startX || points.last
+        != startY) {
+      moveTo(startX, startY);
+      points = currentPath.points;
+    }
+
+    if (startAngle == endAngle) return this;
+
+    if (!anticlockwise && endAngle <= startAngle) {
+      endAngle += math.PI * 2;
+    } else if (anticlockwise && startAngle <= endAngle) {
+      startAngle += math.PI * 2;
+    }
+
+    double sweep = anticlockwise ? (startAngle - endAngle) * -1 : (endAngle -
+        startAngle);
+    double segs = (sweep.abs() / (math.PI * 2)) * 40;
+
+    if (sweep == 0) return this;
+
+    double theta = sweep / (segs * 2);
+    double theta2 = theta * 2;
+
+    double cTheta = math.cos(theta);
+    double sTheta = math.sin(theta);
+
+    double segMinus = segs - 1;
+
+    double remainder = (segMinus % 1) / segMinus;
+
+    for (int i = 0; i <= segMinus; i++) {
+      double real = i + remainder * i;
+
+      double angle = ((theta) + startAngle + (theta2 * real));
+
+      double c = math.cos(angle);
+      double s = -math.sin(angle);
+
+      points.addAll([((cTheta * c) + (sTheta * s)) * radius + cx, ((cTheta * -s)
+          + (sTheta * c)) * radius + cy]);
+    }
+
+    _dirty = true;
+
+    return this;
+  }
+
+  /**
+   * Draws a line using the current line style from the current drawing position
+   * to (x, y); the current drawing position is then set to (x, y).
+   */
+  Graphics drawPath(Point<num> path) {
+    if (currentPath.points.isEmpty) {
+      if (graphicsData.isNotEmpty) graphicsData.removeLast();
+    }
+
+    currentPath = new Path(POLY, lineWidth, lineColor, lineAlpha, _fillColor,
+        fillAlpha, _filling);
+
+    graphicsData.add(currentPath);
+
+    currentPath.points.add(path.x);
+    currentPath.points.add(path.y);
+
     _dirty = true;
 
     return this;
@@ -170,6 +359,20 @@ class Graphics extends DisplayObjectContainer {
 
     currentPath = new Path(Path.RECT, lineWidth, lineColor, lineAlpha,
         _fillColor, fillAlpha, _filling, [x, y, width, height]);
+
+    graphicsData.add(currentPath);
+    _dirty = true;
+
+    return this;
+  }
+
+  Graphics drawRoundedRect(int x, int y, int width, int height, double radius) {
+    if (currentPath.points.isEmpty) {
+      if (graphicsData.isNotEmpty) graphicsData.removeLast();
+    }
+
+    currentPath = new Path(RREC, lineWidth, lineColor, lineAlpha, _fillColor,
+        fillAlpha, _filling, [x, y, width, height, radius]);
 
     graphicsData.add(currentPath);
     _dirty = true;
@@ -268,6 +471,7 @@ class Graphics extends DisplayObjectContainer {
       return;
     } else {
       renderSession.spriteBatch.stop();
+      renderSession.blendModeManager.setBlendMode(blendMode);
 
       if (_mask != null) {
         renderSession.maskManager.pushMask(_mask, renderSession);
@@ -300,7 +504,10 @@ class Graphics extends DisplayObjectContainer {
       }
 
       if (_filters != null) renderSession.filterManager.popFilter();
-      if (_mask != null) renderSession.maskManager.popMask(renderSession);
+
+      if (_mask != null) {
+        renderSession.maskManager.popMask(_mask, renderSession);
+      }
 
       renderSession.drawCount++;
 
@@ -315,7 +522,7 @@ class Graphics extends DisplayObjectContainer {
     // this element.
     if (visible == false || alpha == 0 || isMask == true) return;
 
-    var context = renderSession.context;
+    var context = renderSession.context as CanvasRenderingContext2D;
     var transform = _worldTransform;
 
     if (blendMode != renderSession.currentBlendMode) {
@@ -323,6 +530,8 @@ class Graphics extends DisplayObjectContainer {
       context.globalCompositeOperation =
           CanvasRenderer.BLEND_MODES[blendMode.value];
     }
+
+    if (_mask != null) renderSession.maskManager.pushMask(_mask, renderSession);
 
     context.setTransform(transform.a, transform.c, transform.b, transform.d,
         transform.tx, transform.ty);
@@ -332,6 +541,8 @@ class Graphics extends DisplayObjectContainer {
     _children.forEach((child) {
       child._renderCanvas(renderSession);
     });
+
+    if (_mask != null) renderSession.maskManager.popMask(renderSession);
   }
 
   /// Retrieves the bounds of the graphic shape as a rectangle object.

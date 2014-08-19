@@ -16,52 +16,27 @@ part of pixi;
 
 // TODO: document.
 class WebGLMaskManager extends MaskManager {
-  List<Graphics> maskStack = new List<Graphics>();
-
   /// Applies the Mask and adds it to the current filter stack.
   @override
   void pushMask(Graphics maskData, WebGLRenderSession renderSession) {
     var context = renderSession.context as gl.RenderingContext;
 
-    if (maskStack.isEmpty) {
-      context.enable(gl.STENCIL_TEST);
-      context.stencilFunc(gl.ALWAYS, 1, 1);
-    }
+    if (maskData._dirty) WebGLGraphics._updateGraphics(maskData, context);
 
-    maskStack.add(maskData);
+    int contextId = WebGLContextManager.current.id(context);
+    if (maskData._webGL[contextId].data.isEmpty) return;
 
-    context.colorMask(false, false, false, false);
-    context.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
-
-    WebGLGraphics.current._renderGraphics(maskData, renderSession);
-
-    context.colorMask(true, true, true, true);
-    context.stencilFunc(gl.NOTEQUAL, 0, maskStack.length);
-    context.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+    var webGLData = maskData._webGL[contextId].data.first;
+    renderSession.stencilManager.pushStencil(maskData, webGLData, renderSession
+        );
   }
 
   /// Removes the last filter from the filter stack and doesn't return it.
-  @override
-  void popMask(WebGLRenderSession renderSession) {
+  void popMask(Graphics maskData, WebGLRenderSession renderSession) {
     var context = renderSession.context as gl.RenderingContext;
+    int contextId = WebGLContextManager.current.id(context);
+    var webGLData = maskData._webGL[contextId].data.first;
 
-    var maskData = maskStack.removeLast();
-
-    if (maskData != null) {
-      context.colorMask(false, false, false, false);
-
-      context.stencilOp(gl.KEEP, gl.KEEP, gl.DECR);
-
-      WebGLGraphics.current._renderGraphics(maskData, renderSession);
-
-      context.colorMask(true, true, true, true);
-      context.stencilFunc(gl.NOTEQUAL, 0, maskStack.length);
-      context.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-    }
-
-    if (maskStack.isEmpty) context.disable(gl.STENCIL_TEST);
+    renderSession.stencilManager.popStencil(maskData, webGLData, renderSession);
   }
-
-  /// Destroys the mask stack.
-  void destroy() => maskStack = null;
 }

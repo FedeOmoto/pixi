@@ -1,18 +1,18 @@
-Pixi Dart
-=========
+# Pixi Dart
 
 A port of the [pixi.js](https://github.com/GoodBoyDigital/pixi.js/) rendering  engine to Dart.
 
-###Demos
+## Demos
 
-http://FedeOmoto.github.io/
+[http://FedeOmoto.github.io/pixi/](http://FedeOmoto.github.io/)
 
-###Demos source code
+## Demos source code
 
-Pub: http://pub.dartlang.org/packages/pixi_examples
+Pub: [http://pub.dartlang.org/packages/pixi_examples](http://pub.dartlang.org/packages/pixi_examples)
 
-GitHub: https://github.com/FedeOmoto/pixi_examples/
+GitHub: [https://github.com/FedeOmoto/pixi_examples/](https://github.com/FedeOmoto/pixi_examples/)
 
-###Docs
+## Docs
 
-http://www.dartdocs.org/documentation/pixi_dart/0.1.68/index.html#pixi_dart
+[http://www.dartdocs.org/documentation/pixi_dart/0.2.0/](http://www.dartdocs.org/documentation/pixi_dart/0.2.0/)
+

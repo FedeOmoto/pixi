@@ -16,14 +16,19 @@ part of pixi;
 
 // TODO: document.
 class WebGLRenderSession extends RenderSession {
+  final WebGLMaskManager maskManager;
+
   int drawCount = 0;
+
   WebGLShaderManager shaderManager;
   WebGLFilterManager filterManager;
+  WebGLStencilManager stencilManager;
+  WebGLBlendModeManager blendModeManager;
   WebGLSpriteBatch spriteBatch;
   BlendModes<int> currentBlendMode;
   Point<double> projection;
   Point<num> offset;
 
-  WebGLRenderSession(gl.RenderingContext context, WebGLMaskManager maskManager)
-      : super(context, maskManager);
+  WebGLRenderSession(gl.RenderingContext context, this.maskManager)
+      : super(context);
 }

@@ -62,13 +62,6 @@ class TilingSprite extends Sprite {
     _height = value;
   }
 
-  // When the texture is updated, this event will fire to update the scale and
-  // frame.
-  @override
-  void _onTextureUpdate([CustomEvent event]) {
-    _updateFrame = true;
-  }
-
   @override
   void setTexture(Texture texture) {
     if (this.texture == texture) return;
@@ -111,7 +104,7 @@ class TilingSprite extends Sprite {
     renderSession.spriteBatch.stop();
 
     if (_filters != null) renderSession.filterManager.popFilter();
-    if (_mask != null) renderSession.maskManager.popMask(renderSession);
+    if (_mask != null) renderSession.maskManager.popMask(_mask, renderSession);
 
     renderSession.spriteBatch.start();
   }
@@ -147,8 +140,6 @@ class TilingSprite extends Sprite {
           CanvasRenderer.BLEND_MODES[renderSession.currentBlendMode.value];
     }
 
-    context.beginPath();
-
     tilePosition.x %= tilingTexture.baseTexture.width;
     tilePosition.y %= tilingTexture.baseTexture.height;
 
@@ -165,9 +156,10 @@ class TilingSprite extends Sprite {
     context.scale(1 / tileScale.x, 1 / tileScale.y);
     context.translate(-tilePosition.x, -tilePosition.y);
 
-    context.closePath();
-
     if (_mask != null) renderSession.maskManager.popMask(renderSession);
+
+    _children.forEach((child) => child._renderCanvas(renderSession));
+
   }
 
   @override
@@ -236,6 +228,13 @@ class TilingSprite extends Sprite {
     return _bounds;
   }
 
+  // When the texture is updated, this event will fire to update the scale and
+  // frame.
+  @override
+  void _onTextureUpdate([CustomEvent event]) {
+    // Overriding the sprite version of this!
+  }
+
   void generateTilingTexture(bool forcePowerOfTwo) {
     if (!texture.baseTexture._hasLoaded) return;
 
@@ -259,7 +258,7 @@ class TilingSprite extends Sprite {
       targetWidth = math.pow(2, (math.log(frame.width) / math.log(2)).ceil());
       targetHeight = math.pow(2, (math.log(frame.height) / math.log(2)).ceil());
 
-      if (frame.width != targetWidth && frame.height != targetHeight) {
+      if (frame.width != targetWidth || frame.height != targetHeight) {
         newTextureRequired = true;
       }
     }
@@ -283,8 +282,8 @@ class TilingSprite extends Sprite {
 
       (canvasBuffer.context as
           CanvasRenderingContext2D).drawImageScaledFromSource(texture.baseTexture.source,
-          frame.left, frame.top, frame.width, frame.height, 0, 0, targetWidth,
-          targetHeight);
+          texture.crop.left, texture.crop.top, texture.crop.width, texture.crop.height, 0,
+          0, targetWidth, targetHeight);
 
       tileScaleOffset.x = frame.width / targetWidth;
       tileScaleOffset.y = frame.height / targetHeight;

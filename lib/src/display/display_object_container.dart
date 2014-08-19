@@ -88,19 +88,63 @@ class DisplayObjectContainer extends DisplayObject {
 
   Map<int, InteractionData> _touchData = new Map<int, InteractionData>();
 
+  num _width;
+  num _height;
+
+  /// Returns the width of the [DisplayObjectContainer].
+  num get width => scale.x * getLocalBounds.width;
+
+  /**
+   * Sets the width of the [DisplayObjectContainer], setting this will actually
+   * modify the scale to achieve the value set.
+   */
+  void set width(num value) {
+    num width = getLocalBounds.width;
+
+    if (width != 0) {
+      scale.x = value / (width / scale.x);
+    } else {
+      scale.x = 1.0;
+    }
+
+    _width = value;
+  }
+
+  /// Returns the height of the [DisplayObjectContainer].
+  num get height => scale.y * getLocalBounds.height;
+
+  /**
+   * Sets the height of the [DisplayObjectContainer], setting this will actually
+   * modify the scale to achieve the value set.
+   */
+  void set height(num value) {
+    num height = getLocalBounds.height;
+
+    if (height != 0) {
+      scale.y = value / (height / scale.y);
+    } else {
+      scale.y = 1.0;
+    }
+
+    _height = value;
+  }
+
   /// Adds a child to the container.
-  void addChild(DisplayObject child) => addChildAt(child, _children.length);
+  DisplayObject addChild(DisplayObject child) {
+    return addChildAt(child, _children.length);
+  }
 
   /**
    * Adds a child to the container at a specified index. If the index is out of
    * bounds a [RangeError] will be thrown.
    */
-  void addChildAt(DisplayObject child, int index) {
+  DisplayObject addChildAt(DisplayObject child, int index) {
     if (index >= 0 && index <= _children.length) {
       if (child._parent != null) child._parent.removeChild(child);
       child._parent = this;
       _children.insert(index, child);
       if (_stage != null) child.setStageReference = _stage;
+      return child;
     } else {
       throw new RangeError(
           'The index $index supplied is out of bounds ${_children.length}.');
@@ -279,15 +323,17 @@ class DisplayObjectContainer extends DisplayObject {
     }
 
     if (_mask != null || _filters != null) {
+      // Push filter first as we need to ensure the stencil buffer is correct
+      // for any masking.
+      if (_filters != null) {
+        renderSession.spriteBatch.flush();
+        renderSession.filterManager.pushFilter(_filterBlock);
+      }
+
       if (_mask != null) {
         renderSession.spriteBatch.stop();
         renderSession.maskManager.pushMask(_mask, renderSession);
         renderSession.spriteBatch.start();
-      }
-
-      if (_filters != null) {
-        renderSession.spriteBatch.flush();
-        renderSession.filterManager.pushFilter(_filterBlock);
       }
 
       // Simple render children!
@@ -295,8 +341,11 @@ class DisplayObjectContainer extends DisplayObject {
 
       renderSession.spriteBatch.stop();
 
+      if (_mask != null) {
+        renderSession.maskManager.popMask(_mask, renderSession);
+      }
+
       if (_filters != null) renderSession.filterManager.popFilter();
-      if (_mask != null) renderSession.maskManager.popMask(renderSession);
 
       renderSession.spriteBatch.start();
     } else {

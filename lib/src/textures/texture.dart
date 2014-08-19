@@ -23,9 +23,10 @@ class Texture extends EventTarget {
   static Map<String, Texture> _cache = new Map<String, Texture>();
   static List<Texture> _frameUpdates = new List<Texture>();
 
+  /// Does this [Texture] have any frame data assigned to it?
   bool noFrame = false;
 
-  /// The base texture of that this texture uses.
+  /// The base texture that this texture uses.
   final BaseTexture baseTexture;
 
   /// The frame specifies the region of the base texture that this texture uses.
@@ -34,11 +35,26 @@ class Texture extends EventTarget {
   /// The trim rectangle.
   Rectangle<int> trim;
 
+  /**
+   * This will let the renderer know if the texture is valid. If its not then it
+   * cannot be rendered.
+   */
+  bool _valid = false;
+
+  /**
+   * This is the area of the BaseTexture image to actually copy to the Canvas /
+   * WebGL when rendering, irrespective of the actual frame size or placement
+   * (which can be influenced by trimmed texture atlases).
+   */
+  Rectangle<int> crop = new Rectangle<int>(0, 0, 1, 1);
+
   Map<String, CanvasImageSource> tintCache;
 
+  // The WebGL UV data cache.
   TextureUvs _uvs;
-  int _width, _height;
-  bool _updateFrame = false;
+
+  int _width = 0;
+  int _height = 0;
   bool _needsUpdate = false;
   bool _isTiling = false;
   CanvasBuffer _canvasBuffer;
@@ -67,7 +83,7 @@ class Texture extends EventTarget {
    * If the image is not in the texture cache it will be  created and loaded.
    */
   factory Texture.fromImage(String imageUrl, [bool crossorigin, ScaleModes<int>
-      scaleMode]) {
+      scaleMode = ScaleModes.DEFAULT]) {
     var texture = Texture._cache[imageUrl];
 
     if (texture == null) {
@@ -98,16 +114,16 @@ class Texture extends EventTarget {
    * Returns a texture based on a canvas element.
    * If the canvas is not in the texture cache it will be created and loaded.
    */
-  factory Texture.fromCanvas(CanvasElement canvas, [ScaleModes<int> scaleMode])
-      {
+  factory Texture.fromCanvas(CanvasElement canvas, [ScaleModes<int> scaleMode =
+      ScaleModes.DEFAULT]) {
     var baseTexture = new BaseTexture.fromCanvas(canvas, scaleMode);
     return new Texture(baseTexture);
   }
 
-  /// The with of the render texture.
+  /// The width of the [Texture] in pixels.
   int get width => _width;
 
-  /// The height of the render texture.
+  /// The height of the [Texture] in pixels.
   int get height => _height;
 
   /// Called when the base texture is loaded.
@@ -130,27 +146,46 @@ class Texture extends EventTarget {
   /// Destroys this texture.
   void destroy([bool destroyBase = false]) {
     if (destroyBase) baseTexture.destroy();
+    _valid = false;
   }
 
-  /// Specifies the rectangle region of the baseTexture.
+  /// Specifies the region of the baseTexture that this texture will use.
   void setFrame(Rectangle<int> frame) {
+    noFrame = false;
+
     this.frame = frame;
     _width = frame.width;
     _height = frame.height;
 
-    if (frame.left + frame.width > baseTexture.width || frame.top + frame.height
-        > baseTexture.height) {
+    crop.left = frame.left;
+    crop.top = frame.top;
+    crop.width = frame.width;
+    crop.height = frame.height;
+
+    if (trim == null && (frame.left + frame.width > baseTexture.width ||
+        frame.top + frame.height > baseTexture.height)) {
       throw new StateError(
           'Texture Error: frame does not fit inside the base Texture dimensions.');
     }
 
-    _updateFrame = true;
+    _valid = frame != null && frame.width != 0 && frame.height != 0 &&
+        baseTexture.source != null && baseTexture.hasLoaded;
 
-    Texture._frameUpdates.add(this);
+    if (trim != null) {
+      _width = trim.width;
+      _height = trim.height;
+      this.frame.width = trim.width;
+      this.frame.height = trim.height;
+    }
+
+    if (_valid) Texture._frameUpdates.add(this);
   }
 
+  // Updates the internal WebGL UV cache.
   void _updateWebGLuvs() {
     if (_uvs == null) _uvs = new TextureUvs();
+
+    var frame = crop;
 
     var tw = baseTexture.width;
     var th = baseTexture.height;

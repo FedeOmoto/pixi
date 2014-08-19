@@ -19,6 +19,9 @@ part of pixi;
  * primitive graphics data.
  */
 class WebGLGraphics {
+  static List<WebGLGraphicsData> _graphicsDataPool =
+      new List<WebGLGraphicsData>();
+
   /// Answer the singleton instance of the CanvasGraphics class.
   static WebGLGraphics get current => WebGLGraphics._singleton;
 
@@ -38,101 +41,172 @@ class WebGLGraphics {
         offset = renderSession.offset,
         shader = renderSession.shaderManager.primitiveShader;
 
-    int contextId = WebGLContextManager.current.id(context);
-
-    if (graphics._webGL[contextId] == null) {
-      graphics._webGL[contextId] = new WebGLProperties(context);
-    }
-
-    var webGL = graphics._webGL[contextId];
-
     if (graphics._dirty) {
-      graphics._dirty = false;
-
-      if (graphics._clearDirty) {
-        graphics._clearDirty = false;
-
-        webGL.lastIndex = 0;
-        webGL.points.clear();
-        webGL.indices.clear();
-      }
-
       _updateGraphics(graphics, context);
     }
 
-    renderSession.shaderManager.activatePrimitiveShader();
+    int contextId = WebGLContextManager.current.id(context);
+    var webGL = graphics._webGL[contextId];
 
     // This  could be speeded up for sure!
 
-    // Set the matrix transform.
-    context.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    webGL.data.forEach((webGLData) {
+      if (webGLData.mode == 1) {
+        renderSession.stencilManager.pushStencil(graphics, webGLData,
+            renderSession);
 
-    context.uniformMatrix3fv(shader.translationMatrix, false,
-        graphics._worldTransform.asListTransposed());
+        // Render quad.
+        context.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT,
+            (webGLData.indices.length - 4) * 2);
 
-    context.uniform2f(shader.projectionVector, projection.x, -projection.y);
-    context.uniform2f(shader.offsetVector, -offset.x, -offset.y);
+        renderSession.stencilManager.popStencil(graphics, webGLData,
+            renderSession);
+      } else {
+        renderSession.shaderManager.setShader(shader);
+        shader = renderSession.shaderManager.primitiveShader;
+        context.uniformMatrix3fv(shader.translationMatrix, false,
+            graphics._worldTransform.asListTransposed());
 
-    var rgba = graphics.tint.rgba;
-    context.uniform3fv(shader.tintColor, new Float32List.fromList([rgba.r / 255,
-        rgba.g / 255, rgba.b / 255]));
+        context.uniform2f(shader.projectionVector, projection.x, -projection.y);
+        context.uniform2f(shader.offsetVector, -offset.x, -offset.y);
 
-    context.uniform1f(shader.alpha, graphics._worldAlpha);
-    context.bindBuffer(gl.ARRAY_BUFFER, webGL.buffer);
+        var rgba = graphics.tint.rgba;
+        context.uniform3fv(shader.tintColor, new Float32List.fromList([rgba.r /
+            255, rgba.g / 255, rgba.b / 255]));
 
-    context.vertexAttribPointer(shader.aVertexPosition, 2, gl.FLOAT, false, 4 *
-        6, 0);
-    context.vertexAttribPointer(shader.colorAttribute, 4, gl.FLOAT, false, 4 *
-        6, 2 * 4);
+        context.uniform1f(shader.alpha, graphics._worldAlpha);
 
-    // Set the index buffer!
-    context.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, webGL.indexBuffer);
+        context.bindBuffer(gl.ARRAY_BUFFER, webGLData.buffer);
 
-    context.drawElements(gl.TRIANGLE_STRIP, webGL.indices.length,
-        gl.UNSIGNED_SHORT, 0);
+        context.vertexAttribPointer(shader.aVertexPosition, 2, gl.FLOAT, false,
+            4 * 6, 0);
+        context.vertexAttribPointer(shader.colorAttribute, 4, gl.FLOAT, false, 4
+            * 6, 2 * 4);
 
-    renderSession.shaderManager.deactivatePrimitiveShader();
+        // Set the index buffer!
+        context.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, webGLData.indexBuffer);
+        context.drawElements(gl.TRIANGLE_STRIP, webGLData.indices.length,
+            gl.UNSIGNED_SHORT, 0);
+      }
+    });
   }
 
   // Updates the graphics object.
-  void _updateGraphics(Graphics graphics, gl.RenderingContext context) {
-    var webGL = graphics._webGL[WebGLContextManager.current.id(context)];
+  static void _updateGraphics(Graphics graphics, gl.RenderingContext context) {
+    int contextId = WebGLContextManager.current.id(context);
 
+    // Get the context's graphics object.
+    var webGL = graphics._webGL[contextId];
+
+    // If the graphics object does not exist in the webGL context, time to
+    // create it!
+    if (webGL == null) {
+      webGL = graphics._webGL[contextId] = new WebGLGraphicsData.noBuffers(
+          context);
+    }
+
+    // Flag the graphics as not dirty as we are about to update it.
+    graphics._dirty = false;
+
+    // If the user cleared the graphics object we will need to clear every
+    // object.
+    if (graphics._clearDirty) {
+      graphics._clearDirty = false;
+
+      // Loop through and return all the webGLDatas to the object pool so than
+      // can be reused later on.
+      webGL.data.forEach((graphicsData) {
+        graphicsData.reset();
+        _graphicsDataPool.add(graphicsData);
+      });
+
+      // Clear the array and reset the index.
+      webGL.data.clear();
+      webGL.lastIndex = 0;
+    }
+
+    var webGLData;
+
+    // Loop through the graphics datas and construct each one.
+    // If the object is a complex fill then the new stencil buffer technique
+    // will be used, otherwise graphics objects will be pushed into a batch.
     for (int i = webGL.lastIndex; i < graphics.graphicsData.length; i++) {
       var data = graphics.graphicsData[i];
 
       // TODO: refactor this into a switch.
       if (data.type == Graphics.POLY) {
+        // MAKE SURE WE HAVE THE CORRECT TYPE.
         if (data.fill) {
-          if (data.points.length > 3) _buildPoly(data, webGL);
+          if (data.points.length > 6) {
+            if (data.points.length > 5 * 2) {
+              webGLData = _switchMode(webGL, 1);
+              _buildComplexPoly(data, webGLData);
+            } else {
+              webGLData = _switchMode(webGL, 0);
+              _buildPoly(data, webGLData);
+            }
+          }
         }
 
         if (data.lineWidth > 0) {
-          _buildLine(data, webGL);
+          webGLData = _switchMode(webGL, 0);
+          _buildLine(data, webGLData);
         }
-      } else if (data.type == Graphics.RECT) {
-        _buildRectangle(data, webGL);
-      } else if (data.type == Graphics.CIRC || data.type == Graphics.ELIP) {
-        _buildCircle(data, webGL);
+      } else {
+        webGLData = _switchMode(webGL, 0);
+
+        if (data.type == Graphics.RECT) {
+          _buildRectangle(data, webGLData);
+        } else if (data.type == Graphics.CIRC || data.type == Graphics.ELIP) {
+          _buildCircle(data, webGLData);
+        } else if (data.type == Graphics.RREC) {
+          _buildRoundedRectangle(data, webGLData);
+        }
+      }
+
+      webGL.lastIndex++;
+    }
+
+    // Upload all the dirty data.
+    webGL.data.forEach((webGLData) {
+      if (webGLData.dirty) webGLData.upload();
+    });
+  }
+
+  static WebGLGraphicsData _switchMode(WebGLGraphicsData webGL, int type) {
+    WebGLGraphicsData webGLData;
+
+    if (webGL.data.isEmpty) {
+      if (_graphicsDataPool.isNotEmpty) {
+        webGLData = _graphicsDataPool.removeLast();
+      } else {
+        webGLData = new WebGLGraphicsData(webGL.context);
+      }
+
+      webGLData.mode = type;
+      webGL.data.add(webGLData);
+    } else {
+      webGLData = webGL.data.last;
+
+      if (webGLData.mode != type || type == 1) {
+        if (_graphicsDataPool.isNotEmpty) {
+          webGLData = _graphicsDataPool.removeLast();
+        } else {
+          webGLData = new WebGLGraphicsData(webGL.context);
+        }
+
+        webGLData.mode = type;
+        webGL.data.add(webGLData);
       }
     }
 
-    webGL.lastIndex = graphics.graphicsData.length;
+    webGLData.dirty = true;
 
-    webGL.glPoints = new Float32List.fromList(webGL.points);
-
-    context.bindBuffer(gl.ARRAY_BUFFER, webGL.buffer);
-    context.bufferData(gl.ARRAY_BUFFER, webGL.glPoints, gl.STATIC_DRAW);
-
-    webGL.glIndices = new Uint16List.fromList(webGL.indices);
-
-    context.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, webGL.indexBuffer);
-    context.bufferData(gl.ELEMENT_ARRAY_BUFFER, webGL.glIndices, gl.STATIC_DRAW
-        );
+    return webGLData;
   }
 
   // Builds a rectangle to draw.
-  void _buildRectangle(Path graphicsData, WebGLProperties webGLData) {
+  static void _buildRectangle(Path graphicsData, WebGLGraphicsData webGLData) {
     // Need to convert points to a nice regular data.
     var rectData = graphicsData.points;
     var x = rectData[0];
@@ -183,8 +257,97 @@ class WebGLGraphics {
     }
   }
 
+  // Builds a rounded rectangle to draw.
+  static void _buildRoundedRectangle(Path graphicsData, WebGLGraphicsData
+      webGLData) {
+    var points = graphicsData.points;
+    num x = points[0];
+    num y = points[1];
+    num width = points[2];
+    num height = points[3];
+    num radius = points[4];
+
+    var recPoints = new List<num>();
+    recPoints.addAll([x, y + radius]);
+    recPoints.addAll(_quadraticBezierCurve(x, y + height - radius, x, y +
+        height, x + radius, y + height));
+    recPoints.addAll(_quadraticBezierCurve(x + width - radius, y + height, x +
+        width, y + height, x + width, y + height - radius));
+    recPoints.addAll(_quadraticBezierCurve(x + width, y + radius, x + width, y,
+        x + width - radius, y));
+    recPoints.addAll(_quadraticBezierCurve(x + radius, y, x, y, x, y + radius));
+
+    if (graphicsData.fill) {
+      var color = graphicsData.fillColor.rgba;
+      double alpha = graphicsData.fillAlpha;
+
+      double r = color.r / 255 * alpha;
+      double g = color.g / 255 * alpha;
+      double b = color.b / 255 * alpha;
+
+      var verts = webGLData.points;
+      var indices = webGLData.indices;
+
+      double vecPos = verts.length / 6;
+
+      var triangles = PolyK.current.triangulate(recPoints);
+
+      for (int i = 0; i < triangles.length; i += 3) {
+        indices.add(triangles[i] + vecPos);
+        indices.add(triangles[i] + vecPos);
+        indices.add(triangles[i + 1] + vecPos);
+        indices.add(triangles[i + 2] + vecPos);
+        indices.add(triangles[i + 2] + vecPos);
+      }
+
+      for (int i = 0; i < recPoints.length; i++) {
+        verts.addAll([recPoints[i], recPoints[++i], r, g, b, alpha]);
+      }
+    }
+
+    if (graphicsData.lineWidth != 0) {
+      var tempPoints = graphicsData.points;
+
+      graphicsData.points = recPoints;
+      _buildLine(graphicsData, webGLData);
+      graphicsData.points = tempPoints;
+    }
+  }
+
+  static double _getPt(num n1, num n2, double perc) {
+    int diff = n2 - n1;
+
+    return n1 + (diff * perc);
+  }
+
+  // Calculates the points for a quadratic bezier curve.
+  static List<num> _quadraticBezierCurve(int fromX, int fromY, int cpX, int
+      cpY, int toX, int toY) {
+    double xa, ya, xb, yb, x, y, j;
+    int n = 20;
+    var points = new List<num>();
+
+    for (int i = 0; i <= n; i++) {
+      j = i / n;
+
+      // The Green Line.
+      xa = _getPt(fromX, cpX, j);
+      ya = _getPt(fromY, cpY, j);
+      xb = _getPt(cpX, toX, j);
+      yb = _getPt(cpY, toY, j);
+
+      // The Black Dot.
+      x = _getPt(xa, xb, j);
+      y = _getPt(ya, yb, j);
+
+      points.addAll([x, y]);
+    }
+
+    return points;
+  }
+
   // Builds a circle to draw.
-  void _buildCircle(Path graphicsData, WebGLProperties webGLData) {
+  static void _buildCircle(Path graphicsData, WebGLGraphicsData webGLData) {
     // Need to convert points to a nice regular data.
     var rectData = graphicsData.points;
     var x = rectData[0];
@@ -239,7 +402,7 @@ class WebGLGraphics {
   }
 
   // Builds a line to draw.
-  void _buildLine(Path graphicsData, WebGLProperties webGLData) {
+  static void _buildLine(Path graphicsData, WebGLGraphicsData webGLData) {
     // TODO: OPTIMISE!
 
     var points = graphicsData.points;
@@ -258,6 +421,9 @@ class WebGLGraphics {
 
     // If the first point is the last point - gonna have issues :)
     if (firstPoint == lastPoint) {
+      // Need to clone as we are going to slightly modify the shape.
+      points = new List<num>.from(points);
+
       points.removeLast();
       points.removeLast();
 
@@ -424,8 +590,57 @@ class WebGLGraphics {
     indices.add(indexStart - 1);
   }
 
+  // Builds a complex polygon to draw.
+  static void _buildComplexPoly(Path graphicsData, WebGLGraphicsData webGLData)
+      {
+    //TODO: no need to copy this as it gets turned into a FLoat32List anyways.
+    var points = new List<double>.generate(graphicsData.points.length, (int
+        index) {
+      return graphicsData.points[index].toDouble();
+    });
+
+    if (points.length < 6) return;
+
+    // Get first and last point, figure out the middle!
+    var indices = webGLData.indices;
+    webGLData.points = points;
+    webGLData.alpha = graphicsData.fillAlpha;
+    webGLData.color = graphicsData.fillColor;
+
+    // Calculate the bounds.
+    double minX = double.INFINITY;
+    double maxX = double.NEGATIVE_INFINITY;
+
+    double minY = double.INFINITY;
+    double maxY = double.NEGATIVE_INFINITY;
+
+    num x, y;
+
+    // Get size.
+    for (int i = 0; i < points.length; i += 2) {
+      x = points[i];
+      y = points[i + 1];
+
+      minX = x < minX ? x : minX;
+      maxX = x > maxX ? x : maxX;
+
+      minY = y < minY ? y : minY;
+      maxY = y > maxY ? y : maxY;
+    }
+
+    // Add a quad to the end cos there is no point making another buffer!
+    points.addAll([minX, minY, maxX, minY, maxX, maxY, minX, maxY]);
+
+    // Push a quad onto the end..
+
+    //TODO: this aint needed!
+    for (int i = 0; i < points.length / 2; i++) {
+      indices.add(i);
+    }
+  }
+
   // Builds a polygon to draw.
-  void _buildPoly(Path graphicsData, WebGLProperties webGLData) {
+  static void _buildPoly(Path graphicsData, WebGLGraphicsData webGLData) {
     var points = graphicsData.points;
     if (points.length < 6) return;
 

@@ -276,6 +276,8 @@ abstract class DisplayObject {
   void updateCache() => _generateCachedSprite();
 
   void _renderCachedSprite(RenderSession renderSession) {
+    _cachedSprite._worldAlpha = _worldAlpha;
+
     if (renderSession.context is gl.RenderingContext) {
       _cachedSprite._renderWebGL(renderSession);
     } else {

@@ -32,15 +32,21 @@ import 'dart:convert' show JSON;
 export 'package:csslib/parser.dart' show Color;
 import 'package:csslib/parser.dart' show Color;
 
+import 'package:path/path.dart' as path;
+import 'package:spine/spine.dart' as spine;
+
 part 'src/utils/enum.dart';
 part 'src/utils/event_target.dart';
 part 'src/utils/custom_events.dart';
 part 'src/utils/custom_event_stream.dart';
 part 'src/utils/event_stream_subscription.dart';
 part 'src/utils/polyk.dart';
+part 'src/utils/uid.dart';
 part 'src/geom/point.dart';
 part 'src/geom/shape.dart';
 part 'src/geom/rectangle.dart';
+part 'src/geom/circle.dart';
+part 'src/geom/ellipse.dart';
 part 'src/math/matrix.dart';
 part 'src/display/display_object.dart';
 part 'src/display/display_object_container.dart';
@@ -83,6 +89,8 @@ part 'src/renderers/webgl/shaders/shader.dart';
 part 'src/renderers/webgl/shaders/pixi_shader.dart';
 part 'src/renderers/webgl/shaders/primitive_shader.dart';
 part 'src/renderers/webgl/shaders/pixi_fast_shader.dart';
+part 'src/renderers/webgl/shaders/strip_shader.dart';
+part 'src/renderers/webgl/shaders/complex_primitive_shader.dart';
 part 'src/renderers/webgl/primitives/uniform.dart';
 part 'src/renderers/webgl/primitives/uniform_sampler_2d.dart';
 part 'src/renderers/webgl/primitives/uniform_matrix.dart';
@@ -107,12 +115,14 @@ part 'src/renderers/webgl/primitives/uniform_4f.dart';
 part 'src/renderers/webgl/primitives/uniform_4fv.dart';
 part 'src/renderers/webgl/primitives/uniform_4i.dart';
 part 'src/renderers/webgl/primitives/uniform_4iv.dart';
-part 'src/renderers/webgl/primitives/web_gl_properties.dart';
 part 'src/renderers/webgl/utils/web_gl_context_manager.dart';
 part 'src/renderers/webgl/utils/web_gl_shader_manager.dart';
 part 'src/renderers/webgl/utils/web_gl_filter_manager.dart';
+part 'src/renderers/webgl/utils/web_gl_blend_mode_manager.dart';
+part 'src/renderers/webgl/utils/web_gl_stencil_manager.dart';
 part 'src/renderers/webgl/utils/web_gl_sprite_batch.dart';
 part 'src/renderers/webgl/utils/web_gl_graphics.dart';
+part 'src/renderers/webgl/utils/web_gl_graphics_data.dart';
 part 'src/renderers/webgl/utils/filter_texture.dart';
 part 'src/renderers/webgl/utils/web_gl_fast_sprite_batch.dart';
 part 'src/textures/texture.dart';
@@ -124,11 +134,15 @@ part 'src/interaction/interaction_event_stream.dart';
 part 'src/interaction/interaction_manager.dart';
 part 'src/extras/tiling_sprite.dart';
 part 'src/extras/strip.dart';
+part 'src/extras/rope.dart';
+part 'src/extras/spine/atlas_texture_loader.dart';
+part 'src/extras/spine/spine.dart';
 part 'src/loaders/loader.dart';
 part 'src/loaders/asset_loader.dart';
 part 'src/loaders/image_loader.dart';
 part 'src/loaders/json_loader.dart';
 part 'src/loaders/bitmap_font_loader.dart';
+part 'src/loaders/atlas_loader.dart';
 part 'src/text/text_style_base.dart';
 part 'src/text/text_style.dart';
 part 'src/text/bitmap_text_style.dart';
@@ -136,7 +150,7 @@ part 'src/text/text.dart';
 part 'src/text/bitmap_text.dart';
 
 /// Useful for testing against if your lib is using pixi.
-const String VERSION = '1.5.3';
+const String VERSION = '1.6.1';
 
 /// The various blend modes supported by pixi.
 class BlendModes<int> extends Enum<int> {

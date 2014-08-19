@@ -50,8 +50,6 @@ class Sprite extends DisplayObjectContainer {
 
   Color _cachedTint;
 
-  bool _updateFrame = false;
-
   CanvasElement _tintedTexture;
 
   CanvasBuffer buffer;
@@ -125,16 +123,8 @@ class Sprite extends DisplayObjectContainer {
 
   /// Sets the texture of the sprite.
   void setTexture(Texture texture) {
-    // Stop current texture.
-    if (this.texture.baseTexture != texture.baseTexture) {
-      _textureChange = true;
-      this.texture = texture;
-    } else {
-      this.texture = texture;
-    }
-
+    this.texture = texture;
     _cachedTint = Color.white;
-    _updateFrame = true;
   }
 
   // When the texture is updated, this event will fire to update the scale and
@@ -143,8 +133,6 @@ class Sprite extends DisplayObjectContainer {
     // So if _width is 0 then width was not set...
     if (_width != 0) scale.x = _width / texture.frame.width;
     if (_height != 0) scale.y = _height / texture.frame.height;
-
-    _updateFrame = true;
   }
 
   /// Returns the framing rectangle of the sprite as a [Rectangle] object.
@@ -227,15 +215,17 @@ class Sprite extends DisplayObjectContainer {
     if (_mask != null || _filters != null) {
       var spriteBatch = renderSession.spriteBatch;
 
+      // Push filter first as we need to ensure the stencil buffer is correct
+      // for any masking
+      if (_filters != null) {
+        spriteBatch.flush();
+        renderSession.filterManager.pushFilter(_filterBlock);
+      }
+
       if (_mask != null) {
         spriteBatch.stop();
         renderSession.maskManager.pushMask(_mask, renderSession);
         spriteBatch.start();
-      }
-
-      if (_filters != null) {
-        spriteBatch.flush();
-        renderSession.filterManager.pushFilter(_filterBlock);
       }
 
       // Add this sprite to the batch.
@@ -248,8 +238,9 @@ class Sprite extends DisplayObjectContainer {
       // will happen next.
       spriteBatch.stop();
 
+      if (_mask != null) renderSession.maskManager.popMask(_mask, renderSession
+          );
       if (_filters != null) renderSession.filterManager.popFilter();
-      if (_mask != null) renderSession.maskManager.popMask(renderSession);
 
       spriteBatch.start();
     } else {
@@ -269,7 +260,6 @@ class Sprite extends DisplayObjectContainer {
     // this element.
     if (visible == false || alpha == 0) return;
 
-    var frame = texture.frame;
     var context = renderSession.context as CanvasRenderingContext2D;
 
     if (blendMode != renderSession.currentBlendMode) {
@@ -281,11 +271,10 @@ class Sprite extends DisplayObjectContainer {
     if (_mask != null) renderSession.maskManager.pushMask(_mask, renderSession);
 
     // Ignore null sources.
-    if (frame != null && frame.width != 0 && frame.height != 0 &&
-        texture.baseTexture.source != null) {
+    if (texture._valid) {
       context.globalAlpha = _worldAlpha;
 
-      // Allow for trimming.
+      // Allow for pixel rounding.
       if (renderSession.roundPixels) {
         context.setTransform(_worldTransform.a, _worldTransform.c,
             _worldTransform.b, _worldTransform.d, _worldTransform.tx.truncate(),
@@ -302,32 +291,28 @@ class Sprite extends DisplayObjectContainer {
             ScaleModes.LINEAR);
       }
 
+      //  If the texture is trimmed we offset by the trim x/y, otherwise we use
+      // the frame dimensions.
+      double dx = (texture.trim != null) ? texture.trim.left - anchor.x *
+          texture.trim.width : anchor.x * -texture.frame.width;
+      double dy = (texture.trim != null) ? texture.trim.top - anchor.y *
+          texture.trim.height : anchor.y * -texture.frame.height;
+
       if (tint != Color.white) {
         if (_cachedTint != tint) {
-          // No point tinting an image that has not loaded yet!
-          if (!texture.baseTexture._hasLoaded) return;
-
           _cachedTint = tint;
 
           // TODO: clean up caching - how to clean up the caches?
           _tintedTexture = CanvasTinter.current.getTintedTexture(this, tint);
         }
 
-        context.drawImageScaledFromSource(_tintedTexture, 0, 0, frame.width,
-            frame.height, (anchor.x) * -frame.width, (anchor.y) * -frame.height,
-            frame.width, frame.height);
+        context.drawImageScaledFromSource(_tintedTexture, 0, 0,
+            texture.crop.width, texture.crop.height, dx, dy, texture.crop.width,
+            texture.crop.height);
       } else {
-        if (texture.trim != null) {
-          var trim = texture.trim;
-
-          context.drawImageScaledFromSource(this.texture.baseTexture.source,
-              frame.left, frame.top, frame.width, frame.height, trim.left - anchor.x *
-              trim.width, trim.top - anchor.y * trim.height, frame.width, frame.height);
-        } else {
-          context.drawImageScaledFromSource(texture.baseTexture.source,
-              frame.left, frame.top, frame.width, frame.height, (anchor.x) * -frame.width,
-              (anchor.y) * -frame.height, frame.width, frame.height);
-        }
+        context.drawImageScaledFromSource(texture.baseTexture.source,
+            texture.crop.left, texture.crop.top, texture.crop.width, texture.crop.height,
+            dx, dy, texture.crop.width, texture.crop.height);
       }
     }
 

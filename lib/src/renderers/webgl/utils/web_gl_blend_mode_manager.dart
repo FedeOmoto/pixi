@@ -15,7 +15,24 @@
 part of pixi;
 
 // TODO: document.
-abstract class MaskManager {
-  /// Applies the mask and adds it to the current stack of masks.
-  void pushMask(Graphics maskData, RenderSession renderSession);
+class WebGLBlendModeManager {
+  gl.RenderingContext context;
+
+  BlendModes<int> currentBlendMode = const BlendModes(99999);
+
+  WebGLBlendModeManager(this.context);
+
+  /// Sets-up the given blendMode from WebGL's point of view.
+  bool setBlendMode(BlendModes<int> blendMode) {
+    if (currentBlendMode == blendMode) return false;
+
+    currentBlendMode = blendMode;
+
+    var blendModeWebGL = WebGLRenderer.BLEND_MODES[currentBlendMode.value];
+    context.blendFunc(blendModeWebGL[0], blendModeWebGL[1]);
+
+    return true;
+  }
+
+  void destroy() => context = null;
 }

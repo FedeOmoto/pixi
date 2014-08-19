@@ -14,7 +14,14 @@
 
 part of pixi;
 
-/// An affine transformation matrix.
+/**
+ * An affine transformation matrix.
+ * 
+ * Here is a representation of it:
+ * | a | b | tx|
+ * | c | d | ty|
+ * | 0 | 0 | 1 |
+ */
 class Matrix {
   static Matrix identity = new Matrix();
 
@@ -49,12 +56,12 @@ class Matrix {
     ty = iterable.elementAt(5);
   }
 
-  /// Creates a list from the current Matrix object.
+  /// Creates a list from the current [Matrix] object.
   Float32List asList() {
     return new Float32List.fromList([a, b, tx, c, d, ty, 0.0, 0.0, 1.0]);
   }
 
-  /// Creates a list from the transpose of the current Matrix object.
+  /// Creates a list from the transpose of the current [Matrix] object.
   Float32List asListTransposed() {
     return new Float32List.fromList([a, c, 0.0, b, d, 0.0, tx, ty, 1.0]);
   }
