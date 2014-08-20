@@ -4,7 +4,7 @@ A port of the [pixi.js](https://github.com/GoodBoyDigital/pixi.js/) rendering  e
 
 ## Demos
 
-[http://FedeOmoto.github.io/pixi/](http://FedeOmoto.github.io/)
+[http://FedeOmoto.github.io/pixi/](http://FedeOmoto.github.io/pixi/)
 
 ## Demos source code
 
@@ -14,5 +14,5 @@ GitHub: [https://github.com/FedeOmoto/pixi_examples/](https://github.com/FedeOmo
 
 ## Docs
 
-[http://www.dartdocs.org/documentation/pixi_dart/0.2.0/](http://www.dartdocs.org/documentation/pixi_dart/0.2.0/)
+[http://www.dartdocs.org/documentation/pixi_dart/0.2.0+1/](http://www.dartdocs.org/documentation/pixi_dart/0.2.0+1/)
 

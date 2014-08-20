@@ -60,9 +60,17 @@ class Spine extends DisplayObjectContainer {
         continue;
       }
 
-      var sprite = _createSprite(attachment);
+      var sprite = _createSprite(slot);
       slotContainer.addChild(sprite);
     }
+  }
+
+  @override
+  get position => skeleton.position;
+
+  @override
+  void set position(value) {
+    skeleton.position = value;
   }
 
   // Updates the object transform for rendering.
@@ -92,12 +100,20 @@ class Spine extends DisplayObjectContainer {
         continue;
       }
 
-      var sprite = _spriteCache[attachment.name];
+      attachment.updateWorldVertices(slot, true);
+
+      var color = new spine.Color.fromFloat(
+          attachment.getWorldVertices[spine.RegionAttachment.C2]);
+
+      var sprite = _spriteCache[slot.data.name];
 
       if (sprite == null) {
-        sprite = _createSprite(attachment);
+        sprite = _createSprite(slot);
         slotContainer.addChild(sprite);
       }
+
+      // Update the sprite alpha value.
+      sprite.alpha = color.a;
 
       slotContainer._children.forEach((child) {
         child.visible = child == sprite;
@@ -115,13 +131,14 @@ class Spine extends DisplayObjectContainer {
       slotContainer.scale.x = bone.worldScaleX;
       slotContainer.scale.y = bone.worldScaleY;
 
-      slotContainer.rotation = -(slot.bone.worldRotation * math.PI / 180);
+      slotContainer.rotation = -(slot.bone.worldRotation * DEG_TO_RAD);
     }
 
     super._updateTransform();
   }
 
-  Sprite _createSprite(spine.RegionAttachment attachment) {
+  Sprite _createSprite(spine.Slot slot) {
+    var attachment = slot.attachment as spine.RegionAttachment;
     var region = attachment.region;
     var texture = region.page.rendererObject as Texture;
     int width = region.rotate ? region.height : region.width;
@@ -131,11 +148,13 @@ class Spine extends DisplayObjectContainer {
     var sprite = new Sprite(new Texture(texture.baseTexture, rect));
 
     sprite.scale = new Point<double>(attachment.scaleX, attachment.scaleY);
-    sprite.rotation = (-attachment.rotation + rotation) * math.PI / 180;
+    sprite.rotation = (-attachment.rotation + rotation) * DEG_TO_RAD;
     sprite.tint = new Color(attachment.getColor.toIntBits());
     sprite.alpha = attachment.getColor.a;
     sprite.anchor.x = sprite.anchor.y = 0.5;
+    //sprite.blendMode = slot.data.additiveBlending ? BlendModes.ADD :
+    //    BlendModes.NORMAL;
 
-    return _spriteCache[attachment.name] = sprite;
+    return _spriteCache[slot.data.name] = sprite;
   }
 }
