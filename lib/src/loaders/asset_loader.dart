@@ -89,7 +89,7 @@ class AssetLoader extends EventTarget {
     }));
 
     if (_loadCount == 0) {
-      this.dispatchEvent(new CustomEvent('complete', detail: this));
+      dispatchEvent(new CustomEvent('complete', detail: this));
     }
   }
 

@@ -55,14 +55,21 @@ abstract class Renderer {
    * WebGL is the preferred renderer as it is a lot faster. If webGL is not
    * supported by the browser then this method will return a canvas renderer.
    */
-  factory Renderer.autoDetect({int width: 800, int height: 600, CanvasElement
-      view, bool transparent: false, bool antialias: false}) {
-    if (gl.RenderingContext.supported) {
-      return new WebGLRenderer(width: width, height: height, view: view,
-          transparent: transparent, antialias: antialias);
+  factory Renderer.autoDetect({int width: 800, int height: 600,
+      CanvasElement view, bool transparent: false, bool antialias: false}) {
+    if (WebGLRenderer.supported) {
+      return new WebGLRenderer(
+          width: width,
+          height: height,
+          view: view,
+          transparent: transparent,
+          antialias: antialias);
     }
 
-    return new CanvasRenderer(width: width, height: height, view: view,
+    return new CanvasRenderer(
+        width: width,
+        height: height,
+        view: view,
         transparent: transparent);
   }
 

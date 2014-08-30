@@ -140,15 +140,24 @@ class Spine extends DisplayObjectContainer {
   Sprite _createSprite(spine.Slot slot) {
     var attachment = slot.attachment as spine.RegionAttachment;
     var region = attachment.region;
-    var texture = region.page.rendererObject as Texture;
-    int width = region.rotate ? region.height : region.width;
-    int height = region.rotate ? region.width : region.height;
-    int rotation = region.rotate ? 90 : 0;
-    var rect = new Rectangle(region.x, region.y, width, height);
-    var sprite = new Sprite(new Texture(texture.baseTexture, rect));
+    int additionalRotation = region.rotate ? 90 : 0;
+
+    var texture = Texture._cache[attachment.name];
+
+    if (texture == null) {
+      int width = region.rotate ? region.height : region.width;
+      int height = region.rotate ? region.width : region.height;
+      var originalTexture = region.page.rendererObject as Texture;
+      var rect = new Rectangle(region.x, region.y, width, height);
+
+      texture = new Texture(originalTexture.baseTexture, rect);
+      Texture._cache[attachment.name] = texture;
+    }
+
+    var sprite = new Sprite(texture);
 
     sprite.scale = new Point<double>(attachment.scaleX, attachment.scaleY);
-    sprite.rotation = (-attachment.rotation + rotation) * DEG_TO_RAD;
+    sprite.rotation = (-attachment.rotation + additionalRotation) * DEG_TO_RAD;
     sprite.tint = new Color(attachment.getColor.toIntBits());
     sprite.alpha = attachment.getColor.a;
     sprite.anchor.x = sprite.anchor.y = 0.5;

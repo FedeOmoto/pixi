@@ -63,8 +63,10 @@ class BaseTexture extends EventTarget {
       _source = source as VideoElement;
     }
 
-    if (((_source is ImageElement && _source.complete) || _source is!
-        ImageElement) && _source.width != 0 && _source.height != 0) {
+    if (((_source is ImageElement && _source.complete) ||
+        _source is! ImageElement) &&
+        _source.width != 0 &&
+        _source.height != 0) {
       _hasLoaded = true;
       _width = _source.width;
       _height = _source.height;
@@ -94,8 +96,8 @@ class BaseTexture extends EventTarget {
    * If the image is not in the base texture cache it will be created and
    * loaded.
    */
-  factory BaseTexture.fromImage(String imageUrl, [bool
-      crossOrigin, ScaleModes<int> scaleMode]) {
+  factory BaseTexture.fromImage(String imageUrl, [bool crossOrigin,
+      ScaleModes<int> scaleMode]) {
     var baseTexture = BaseTexture._cache[imageUrl];
 
     crossOrigin = (crossOrigin == null && !imageUrl.startsWith('data:'));
@@ -117,8 +119,8 @@ class BaseTexture extends EventTarget {
    * If the image is not in the base texture cache it will be created and
    * loaded.
    */
-  factory BaseTexture.fromCanvas(CanvasElement canvas, [ScaleModes<int>
-      scaleMode]) {
+  factory BaseTexture.fromCanvas(CanvasElement canvas,
+      [ScaleModes<int> scaleMode]) {
     if (canvas.dataset['pixiId'] == null) {
       canvas.dataset['pixiId'] = 'canvas_${BaseTexture._cacheIdGenerator++}';
     }
@@ -154,7 +156,7 @@ class BaseTexture extends EventTarget {
       BaseTexture._cache.remove(_imageUrl);
       Texture._cache.remove(_imageUrl);
       _imageUrl = null;
-      _source.src = null;
+      _source.src = '';
     } else if (_source != null && _source.dataset['pixiId'] != null) {
       BaseTexture._cache.remove(_source.dataset['pixiId']);
     }

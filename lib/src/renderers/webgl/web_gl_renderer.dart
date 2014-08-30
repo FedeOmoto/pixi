@@ -16,18 +16,27 @@ part of pixi;
 
 // TODO: document.
 class WebGLRenderer extends Renderer {
-  static const List<List<int>> BLEND_MODES = const <List<int>>[const
-      <int>[gl.ONE, gl.ONE_MINUS_SRC_ALPHA], const <int>[gl.SRC_ALPHA, gl.DST_ALPHA],
-      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA], const <int>[gl.SRC_ALPHA,
-      gl.ONE], const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA], const
-      <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA], const <int>[gl.DST_COLOR,
-      gl.ONE_MINUS_SRC_ALPHA], const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
-      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA], const <int>[gl.DST_COLOR,
-      gl.ONE_MINUS_SRC_ALPHA], const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
-      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA], const <int>[gl.DST_COLOR,
-      gl.ONE_MINUS_SRC_ALPHA], const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
-      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA], const <int>[gl.DST_COLOR,
-      gl.ONE_MINUS_SRC_ALPHA], const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA]];
+  static const List<List<int>> BLEND_MODES = const <List<int>>[
+      const <int>[gl.ONE, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.SRC_ALPHA, gl.DST_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.SRC_ALPHA, gl.ONE],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA],
+      const <int>[gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA]];
+
+  /// Is WebGL supported on the current platform?
+  static final bool supported = gl.RenderingContext.supported;
 
   // Updates the textures loaded into this webgl renderer.
   static void _updateTextures() {
@@ -60,33 +69,48 @@ class WebGLRenderer extends Renderer {
   }
 
   // Creates a WebGL texture.
-  static gl.Texture _createWebGLTexture(BaseTexture texture, gl.RenderingContext
-      context) {
+  static gl.Texture _createWebGLTexture(BaseTexture texture,
+      gl.RenderingContext context) {
     var contextId = WebGLContextManager.current.id(context);
 
     if (texture._hasLoaded) {
       texture._glTextures[contextId] = context.createTexture();
 
       context.bindTexture(gl.TEXTURE_2D, texture._glTextures[contextId]);
-      context.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,
+      context.pixelStorei(
+          gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,
           texture.premultipliedAlpha ? 1 : 0);
 
-      context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+      context.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
           texture.source);
-      int boolean = texture.scaleMode == ScaleModes.LINEAR ? gl.LINEAR :
+      int boolean = texture.scaleMode == ScaleModes.LINEAR ?
+          gl.LINEAR :
           gl.NEAREST;
-      context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+      context.texParameteri(
+          gl.TEXTURE_2D,
+          gl.TEXTURE_MAG_FILTER,
           texture.scaleMode == ScaleModes.LINEAR ? gl.LINEAR : gl.NEAREST);
-      context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+      context.texParameteri(
+          gl.TEXTURE_2D,
+          gl.TEXTURE_MIN_FILTER,
           texture.scaleMode == ScaleModes.LINEAR ? gl.LINEAR : gl.NEAREST);
 
       // Reguler...
 
       if (!texture._powerOf2) {
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE
-            );
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE
-            );
+        context.texParameteri(
+            gl.TEXTURE_2D,
+            gl.TEXTURE_WRAP_S,
+            gl.CLAMP_TO_EDGE);
+        context.texParameteri(
+            gl.TEXTURE_2D,
+            gl.TEXTURE_WRAP_T,
+            gl.CLAMP_TO_EDGE);
       } else {
         context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
         context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
@@ -101,29 +125,43 @@ class WebGLRenderer extends Renderer {
   }
 
   // Updates a WebGL texture.
-  static void _updateWebGLTexture(BaseTexture texture, gl.RenderingContext
-      context) {
+  static void _updateWebGLTexture(BaseTexture texture,
+      gl.RenderingContext context) {
     var contextId = WebGLContextManager.current.id(context);
 
     if (texture._glTextures[contextId] != null) {
       context.bindTexture(gl.TEXTURE_2D, texture._glTextures[contextId]);
-      context.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,
+      context.pixelStorei(
+          gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,
           texture.premultipliedAlpha ? 1 : 0);
 
-      context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+      context.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
           texture.source);
-      context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+      context.texParameteri(
+          gl.TEXTURE_2D,
+          gl.TEXTURE_MAG_FILTER,
           texture.scaleMode == ScaleModes.LINEAR ? gl.LINEAR : gl.NEAREST);
-      context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+      context.texParameteri(
+          gl.TEXTURE_2D,
+          gl.TEXTURE_MIN_FILTER,
           texture.scaleMode == ScaleModes.LINEAR ? gl.LINEAR : gl.NEAREST);
 
       // Reguler...
 
       if (!texture._powerOf2) {
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE
-            );
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE
-            );
+        context.texParameteri(
+            gl.TEXTURE_2D,
+            gl.TEXTURE_WRAP_S,
+            gl.CLAMP_TO_EDGE);
+        context.texParameteri(
+            gl.TEXTURE_2D,
+            gl.TEXTURE_WRAP_T,
+            gl.CLAMP_TO_EDGE);
       } else {
         context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
         context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
@@ -170,9 +208,13 @@ class WebGLRenderer extends Renderer {
   List<StreamSubscription<gl.ContextEvent>> _listeners =
       new List<StreamSubscription<gl.ContextEvent>>(2);
 
-  WebGLRenderer({int width: 800, int height: 600, CanvasElement view, bool
-      transparent: false, this.antialias: false, this.preserveDrawingBuffer: false}) :
-      super(width: width, height: height, view: view, transparent: transparent) {
+  WebGLRenderer({int width: 800, int height: 600, CanvasElement view,
+      bool transparent: false, this.antialias: false, this.preserveDrawingBuffer:
+      false}) : super(
+      width: width,
+      height: height,
+      view: view,
+      transparent: transparent) {
     if (Renderer._defaultRenderer == null) Renderer._defaultRenderer = this;
 
     // Deal with losing context.
@@ -180,13 +222,16 @@ class WebGLRenderer extends Renderer {
     _listeners[1] = this.view.onWebGlContextRestored.listen(
         _handleContextRestored);
 
-    if (!gl.RenderingContext.supported) {
+    if (!supported) {
       throw new UnsupportedError(
           'This browser does not support webGL. Try using the canvas renderer.');
     }
 
-    this.context = this.view.getContext3d(alpha: transparent, antialias:
-        antialias, premultipliedAlpha: transparent, stencil: true,
+    this.context = this.view.getContext3d(
+        alpha: transparent,
+        antialias: antialias,
+        premultipliedAlpha: transparent,
+        stencil: true,
         preserveDrawingBuffer: preserveDrawingBuffer);
 
     var context = this.context as gl.RenderingContext;
@@ -262,8 +307,11 @@ class WebGLRenderer extends Renderer {
     if (transparent) {
       context.clearColor(0.0, 0.0, 0.0, 0.0);
     } else {
-      context.clearColor(stage.backgroundColorSplit[0],
-          stage.backgroundColorSplit[1], stage.backgroundColorSplit[2], 1.0);
+      context.clearColor(
+          stage.backgroundColorSplit[0],
+          stage.backgroundColorSplit[1],
+          stage.backgroundColorSplit[2],
+          1.0);
     }
 
     context.clear(gl.COLOR_BUFFER_BIT);
@@ -286,8 +334,8 @@ class WebGLRenderer extends Renderer {
   }
 
   // Renders a display object.
-  void _renderDisplayObject(DisplayObject displayObject, Point<double>
-      projection, [gl.Framebuffer buffer]) {
+  void _renderDisplayObject(DisplayObject displayObject,
+      Point<double> projection, [gl.Framebuffer buffer]) {
     var renderSession = this.renderSession as WebGLRenderSession;
 
     renderSession.blendModeManager.setBlendMode(BlendModes.NORMAL);
@@ -331,14 +379,17 @@ class WebGLRenderer extends Renderer {
 
   // Handles a restored webgl context.
   void _handleContextRestored(gl.ContextEvent event) {
-    if (!gl.RenderingContext.supported) {
+    if (!supported) {
       throw new UnsupportedError(
           'This browser does not support webGL. Try using the canvas renderer.');
     }
 
-    this.context = view.getContext3d(alpha: transparent, antialias: antialias,
-        premultipliedAlpha: transparent, stencil: true, preserveDrawingBuffer:
-        preserveDrawingBuffer);
+    this.context = view.getContext3d(
+        alpha: transparent,
+        antialias: antialias,
+        premultipliedAlpha: transparent,
+        stencil: true,
+        preserveDrawingBuffer: preserveDrawingBuffer);
 
     WebGLContextManager.current.remove(contextId);
 

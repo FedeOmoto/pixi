@@ -1,3 +1,7 @@
+# v0.2.0+2 (2014-08-30)
+
+- Fixed a bug that prevented BaseTextures to be destroyed.
+
 # v0.2.0+1 (2014-08-20)
 
 - Fixed a bug in the Spine class that prevented the Powerup example to show correctly.
