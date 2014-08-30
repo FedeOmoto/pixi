@@ -1,6 +1,6 @@
 # v0.2.0+2 (2014-08-30)
 
-- Fixed a bug that prevented BaseTextures to be destroyed.
+- Fixed a bug that prevented BaseTextures to be destroyed (thanks to Peter Bosák for reporting this).
 
 # v0.2.0+1 (2014-08-20)
 
