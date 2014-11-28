@@ -51,7 +51,7 @@ class Rope extends Strip {
     for (var i = 1; i < points.length; i++) {
       point = points[i];
       index = i * 4;
-      // time to do some smart drawing!
+      // Time to do some smart drawing!
       amount = i / (points.length - 1);
 
       if (i.isOdd) {

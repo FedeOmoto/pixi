@@ -47,6 +47,7 @@ part 'src/geom/shape.dart';
 part 'src/geom/rectangle.dart';
 part 'src/geom/circle.dart';
 part 'src/geom/ellipse.dart';
+part 'src/geom/polygon.dart';
 part 'src/math/matrix.dart';
 part 'src/display/display_object.dart';
 part 'src/display/display_object_container.dart';

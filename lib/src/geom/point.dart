@@ -36,4 +36,7 @@ class Point<T extends num> extends math.Point<T> {
   void set y(T y) {
     _point = new math.Point<T>(_point.x, y);
   }
+
+  /// Creates a clone of this point.
+  Point<T> clone() => new Point<T>(_point.x, _point.y);
 }

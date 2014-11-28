@@ -51,7 +51,7 @@ class WebGLShaderManager {
     // This shader is used for the fast sprite rendering.
     fastShader = new PixiFastShader(context);
 
-    // the next one is used for rendering triangle strips
+    // The next one is used for rendering triangle strips.
     stripShader = new StripShader(context);
 
     setShader(defaultShader);
