@@ -1,5 +1,5 @@
 name: pixi_dart
-version: 0.2.0+2
+version: 0.2.0+3
 author: Federico Omoto <federico.omoto@gmail.com>
 description: A port of the pixi.js rendering engine to Dart.
 homepage: https://github.com/FedeOmoto/pixi

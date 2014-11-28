@@ -14,5 +14,5 @@ GitHub: [https://github.com/FedeOmoto/pixi_examples/](https://github.com/FedeOmo
 
 ## Docs
 
-[http://www.dartdocs.org/documentation/pixi_dart/0.2.0+2/](http://www.dartdocs.org/documentation/pixi_dart/0.2.0+2/)
+[http://www.dartdocs.org/documentation/pixi_dart/0.2.0+3/](http://www.dartdocs.org/documentation/pixi_dart/0.2.0+3/)
 
